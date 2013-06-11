@@ -78,6 +78,9 @@ class Renderer:
         glfw.OpenWindow(800, 600, 0, 0, 0, 0, 0, 0, glfw.WINDOW)
         glfw.SetWindowTitle("TANG")
 
+        glEnable(GL_DEPTH_TEST)
+	glEnable(GL_CULL_FACE)
+
     def pollInput(self):
         tempWheelPosition = glfw.GetMouseWheel()
         if tempWheelPosition != self.wheelPosition:
