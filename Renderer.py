@@ -5,6 +5,7 @@ from OpenGL.GL import *
 import glfw
 from ctypes import *
 import sys
+import math
 import numpy as np
 import hommat as hm
 
@@ -39,18 +40,28 @@ class Renderer:
         self.readData('C:\\Users\\Ryan\\Game Tests\\Data.txt')
 
     def setModel(self, model):
+        print "MODEL"
+        print model
         self.colorShader.setModel(model)
 
     def setView(self, view):
+        print "VIEW"
+        print view
         self.colorShader.setView(view)
 
     def setProj(self, proj):
+        print "PROJ"
+        print proj
         self.colorShader.setProj(proj)
 
     def setLightPos(self, lightPos):
+        print "LIGHTPOS"
+        print lightPos
         self.colorShader.setLightPos(lightPos)
 
     def setDiffCol(self, diffCol):
+        print "DIFFCOL"
+        print diffCol
         self.colorShader.setDiffCol(diffCol)
 
     def windowOpen(self):
@@ -61,9 +72,10 @@ class Renderer:
         
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+        
         self.environment.draw()
 
-        glfw.SwapBuffer()
+        glfw.SwapBuffers()
 
     def initialize(self):
         glfw.Init()
@@ -118,7 +130,8 @@ class Renderer:
         if distSquared <= 1.0:
             vec[2] = math.sqrt(1.0 - distSquared)
         else:
-            vec = np.linalg.norm(vec)
+            vec *= 1 / np.linalg.norm(vec)
+        print vec
         return vec
 
     def readData(self, fileName):

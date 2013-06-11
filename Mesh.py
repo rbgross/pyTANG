@@ -15,25 +15,25 @@ class Mesh:
 
         self.loadModel(fileName)
 
-        vbo = VBO(self.meshData, GL_STATIC_DRAW)
-        vbo.bind()
+        self.vbo = VBO(self.meshData, GL_STATIC_DRAW)
+        self.vbo.bind()
 
         glEnableVertexAttribArray(0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*4, vbo+0)
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*4, self.vbo+0)
 
         glEnableVertexAttribArray(1)
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*4, vbo+12)
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*4, self.vbo+12)
         
-        ebo = glGenBuffers(1)
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+        self.ebo = glGenBuffers(1)
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, len(self.elements)*4, self.elements, GL_STATIC_DRAW)
+
     def draw(self):
         glBindVertexArray(self.vao)
         glDrawElements(GL_TRIANGLES, self.elements.size, GL_UNSIGNED_INT, None )
 
     def loadModel(self, fileName):
         f = open(fileName, 'r')
-        print fileName
         self.meshData = []
         self.elements = []
         vertices = []
