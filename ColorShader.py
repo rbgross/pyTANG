@@ -74,13 +74,13 @@ class ColorShader:
 	glDeleteShader( fragmentShader );
 
     def setModel(self, model):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "model" ), 1, GL_FALSE, model)
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "model" ), 1, GL_TRUE, model)
             
     def setView(self, view):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "view" ), 1, GL_FALSE, view)
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "view" ), 1, GL_TRUE, view)
 
     def setProj(self, proj):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "proj" ), 1, GL_FALSE, proj)
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "proj" ), 1, GL_TRUE, proj)
 
     def setLightPos(self, lightPos):
         glUniform4fv( glGetUniformLocation( self.shaderProgram, "lightPosition" ), 1, lightPos)

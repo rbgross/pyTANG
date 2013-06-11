@@ -40,28 +40,18 @@ class Renderer:
         self.readData('C:\\Users\\Ryan\\Game Tests\\Data.txt')
 
     def setModel(self, model):
-        print "MODEL"
-        print model
         self.colorShader.setModel(model)
 
     def setView(self, view):
-        print "VIEW"
-        print view
         self.colorShader.setView(view)
 
     def setProj(self, proj):
-        print "PROJ"
-        print proj
         self.colorShader.setProj(proj)
 
     def setLightPos(self, lightPos):
-        print "LIGHTPOS"
-        print lightPos
         self.colorShader.setLightPos(lightPos)
 
     def setDiffCol(self, diffCol):
-        print "DIFFCOL"
-        print diffCol
         self.colorShader.setDiffCol(diffCol)
 
     def windowOpen(self):
@@ -117,8 +107,8 @@ class Renderer:
                 curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY)
                 angle = math.acos(min(1.0, np.dot(oldVec, curVec)))
                 cameraAxis = np.cross(oldVec, curVec)
-                cameraToObjectCoords = (np.dot(self.view, self.environment.model)).getI()
-                cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis)
+                cameraToObjectCoords = np.linalg.inv(np.dot(self.view, self.environment.model))
+                cameraAxisObjectCoords = np.dot(cameraToObjectCoords[:-1,:-1], cameraAxis)
                 self.environment.model = hm.rotation(self.environment.model, angle, cameraAxisObjectCoords)
                 self.oldMouseX = self.curMouseX
                 self.oldMouseY = self.curMouseY
@@ -131,7 +121,6 @@ class Renderer:
             vec[2] = math.sqrt(1.0 - distSquared)
         else:
             vec *= 1 / np.linalg.norm(vec)
-        print vec
         return vec
 
     def readData(self, fileName):
