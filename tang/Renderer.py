@@ -13,7 +13,9 @@ from Environment import Environment
 from ColorShader import ColorShader
 
 class Renderer:
-    def __init__(self):
+    def __init__(self, resPath=None):
+        self.resPath = resPath if resPath is not None else os.getcwd()  # default to current directory if None passed
+        
         self.windowWidth = 640
         self.windowHeight = 480
 
@@ -37,7 +39,7 @@ class Renderer:
         self.leftPressed = False
         self.rightPressed = False
 
-        self.readData('C:\\Users\\Ryan\\Game Tests\\Data.txt')
+        self.readData(os.path.abspath(os.path.join(self.resPath, 'data', 'PointData.txt')))  # 'C:\\Users\\Ryan\\Game Tests\\Data.txt'
 
     def setModel(self, model):
         self.colorShader.setModel(model)

@@ -11,9 +11,12 @@ import hommat as hm
 from Renderer import Renderer
 
 def main():
-    renderer = Renderer()
+    resPath = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join("..", "res"))  # NOTE only absolute path seems to work properly
+    print "main(): Resource path =", resPath
+    
+    renderer = Renderer(resPath)
     while renderer.windowOpen():
         renderer.draw()
 
-if __name__ == '__main__': main()
-
+if __name__ == '__main__':
+    main()

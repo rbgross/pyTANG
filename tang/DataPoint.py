@@ -13,7 +13,7 @@ from Mesh import Mesh
 class DataPoint:
     def __init__(self, renderer):
         self.renderer = renderer
-        self.mesh = Mesh('C:\\Users\\Ryan\\Game Tests\\SphereTest.obj')
+        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SphereTest.obj')))  # 'C:\\Users\\Ryan\\Game Tests\\SphereTest.obj'
         self.position = np.array([0.0, 0.0, 0.0], dtype = np.float32)
         self.color = np.array([0.0, 0.0, 0.0], dtype = np.float32)
 
