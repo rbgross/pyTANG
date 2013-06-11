@@ -75,7 +75,7 @@ class Renderer:
         glfw.OpenWindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfw.OpenWindowHint(glfw.WINDOW_NO_RESIZE, GL_TRUE)
-        glfw.OpenWindow(800, 600, 0, 0, 0, 0, 0, 0, glfw.WINDOW)
+        glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 0, 0, glfw.WINDOW)
         glfw.SetWindowTitle("TANG")
 
         glEnable(GL_DEPTH_TEST)
@@ -104,20 +104,21 @@ class Renderer:
             self.rightPressed = False
 
         if self.rightPressed:
+            print self.environment.model
             self.curMouseX, self.curMouseY = glfw.GetMousePos()
             if self.curMouseX != self.oldMouseX or self.curMouseY != self.oldMouseY:
                 oldVec = self.calcArcBallVector(self.oldMouseX, self.oldMouseY)
                 curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY)
                 angle = math.acos(min(1.0, np.dot(oldVec, curVec)))
                 cameraAxis = np.cross(oldVec, curVec)
-                cameraToObjectCoords = np.linalg.inv(np.dot(self.view, self.environment.model))
-                cameraAxisObjectCoords = np.dot(cameraToObjectCoords[:-1,:-1], cameraAxis)
-                self.environment.model = hm.rotation(self.environment.model, angle, cameraAxisObjectCoords)
+                cameraToObjectCoords = np.linalg.inv(np.dot(self.view[:-1,:-1], self.environment.model[:-1,:-1]))
+                cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis)
+                self.environment.model = hm.rotation(self.environment.model, math.degrees(angle), cameraAxisObjectCoords)
                 self.oldMouseX = self.curMouseX
                 self.oldMouseY = self.curMouseY
 
     def calcArcBallVector(self, mouseX, mouseY):
-        vec = np.array([mouseX / self.windowWidth * 2 - 1.0, mouseY / self.windowHeight * 2 - 1.0, 0], dtype = np.float32)
+        vec = np.array([float(mouseX) / self.windowWidth * 2 - 1.0, float(mouseY) / self.windowHeight * 2 - 1.0, 0], dtype = np.float32)
         vec[1] = -vec[1]
         distSquared = vec[0] * vec[0] + vec[1] * vec[1]
         if distSquared <= 1.0:
