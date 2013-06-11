@@ -6,6 +6,7 @@ import glfw
 from ctypes import *
 import sys
 import numpy as np
+import hommat as hm
 
 from Environment import Environment
 from ColorShader import ColorShader
@@ -19,10 +20,10 @@ class Renderer:
 
         self.colorShader = ColorShader()
 
-        self.view = glm.lookAt(glm.vec3(0.0, 0.0, 55.0), glm.vec3(0.0, 0.0, 0.0), glm.vec3(0.0, 1.0, 0.0))
+        self.view = hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32))
         self.setView(self.view)
 
-        self.proj = glm.perspective(45.0, self.windowWidth / self.windowHeight, 0.1, 1000.0)
+        self.proj = hm.perspective(hm.identity(), 45, float(self.windowWidth) / self.windowHeight, 0.1, 1000.0)
         self.setProj(self.proj)
 
         self.environment = Environment(self)
@@ -53,7 +54,7 @@ class Renderer:
         self.colorShader.setDiffCol(diffCol)
 
     def windowOpen(self):
-        return glfwGetWindowParam(glfw.OPENED)
+        return glfw.GetWindowParam(glfw.OPENED)
 
     def draw(self):
         self.pollInput()
@@ -79,7 +80,7 @@ class Renderer:
         tempWheelPosition = glfw.GetMouseWheel()
         if tempWheelPosition != self.wheelPosition:
             self.wheelPosition = tempWheelPosition
-            self.setView(glm.lookAt(glm.vec3(0.0, 0.0, 55.0 - self.wheelPosition), glm.vec3(0.0, 0.0, 0.0), glm.vec3(0.0, 1.0, 0.0)))
+            self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
@@ -102,28 +103,28 @@ class Renderer:
             if self.curMouseX != self.oldMouseX or self.curMouseY != self.oldMouseY:
                 oldVec = self.calcArcBallVector(self.oldMouseX, self.oldMouseY)
                 curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY)
-                angle = math.acos(min(1.0, glm.dot(oldVec, curVec)))
-                cameraAxis = glm.cross(oldVec, curVec)
-                cameraToObjectCoords = glm.inverse(glm.mat3(self.view) * glm.mat3(self.environment.model))
-                cameraToAxisObjectCoords = cameraToObjectCoords * cameraAxis
-                self.environment.model = glm.rotate(self.environment.model, glm.degrees(angle), cameraAxisObjectCoords)
+                angle = math.acos(min(1.0, np.dot(oldVec, curVec)))
+                cameraAxis = np.cross(oldVec, curVec)
+                cameraToObjectCoords = (np.dot(self.view, self.environment.model)).getI()
+                cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis)
+                self.environment.model = hm.rotation(self.environment.model, angle, cameraAxisObjectCoords)
                 self.oldMouseX = self.curMouseX
                 self.oldMouseY = self.curMouseY
 
     def calcArcBallVector(self, mouseX, mouseY):
-        vec = glm.vec3(mouseX / self.windowWidth * 2 - 1.0, mouseY / self.windowHeight * 2 - 1.0, 0)
-        vec.y = -vec.y
-        distSquared = vec.x * vec.x + vec.y * vec.y
+        vec = np.array([mouseX / self.windowWidth * 2 - 1.0, mouseY / self.windowHeight * 2 - 1.0, 0], dtype = np.float32)
+        vec[1] = -vec[1]
+        distSquared = vec[0] * vec[0] + vec[1] * vec[1]
         if distSquared <= 1.0:
-            vec.z = math.sqrt(1.0 - distSquared)
+            vec[2] = math.sqrt(1.0 - distSquared)
         else:
-            vec = glm.normalize(vec)
+            vec = np.linalg.norm(vec)
         return vec
 
     def readData(self, fileName):
         f = open(fileName, 'r')
         for line in f: 
             s = line.split()
-            position = glm.vec3(s[0], s[1], s[2])
+            position = np.array([s[0], s[1], s[2]], dtype = np.float32)
             self.environment.addDataPoint(position)
     

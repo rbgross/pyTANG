@@ -6,16 +6,19 @@ import glfw
 from ctypes import *
 import sys
 import numpy as np
+import hommat as hm
+
+from Mesh import Mesh
 
 class Cube:
     def __init__(self, renderer):
         self.renderer = renderer
         self.mesh = Mesh('C:\\Users\\Ryan\\Game Tests\\CubeTest2.obj')
-        self.position = glm.vec3()
-        self.color = glm.vec3()
+        self.position = np.array([0.0, 0.0, 0.0], dtype = np.float32)
+        self.color = np.array([0.0, 0.0, 0.0], dtype = np.float32)
 
     def draw(self):
-        model = glm.translate(self.renderer.environment.model, self.position)
+        model = hm.translation(self.renderer.environment.model, self.position)
         self.renderer.setModel(model)
         self.renderer.setDiffCol(self.color)
         self.mesh.draw()

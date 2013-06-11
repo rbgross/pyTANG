@@ -6,6 +6,7 @@ import glfw
 from ctypes import *
 import sys
 import numpy as np
+import hommat as hm
 
 from Renderer import Renderer
 

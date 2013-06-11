@@ -6,6 +6,7 @@ import glfw
 from ctypes import *
 import sys
 import numpy as np
+import hommat as hm
 
 class ColorShader:
     def __init__(self):
@@ -59,7 +60,11 @@ class ColorShader:
         self.shaderProgram = glCreateProgram()
         glAttachShader(self.shaderProgram, vertexShader)
         glAttachShader(self.shaderProgram, fragmentShader)
+
+        glBindAttribLocation( self.shaderProgram, 0, "position")
+        glBindAttribLocation( self.shaderProgram, 1, "normal")
         glBindFragDataLocation(self.shaderProgram, 0, "outColor")
+
         glLinkProgram(self.shaderProgram)
         self.printProgramInfoLog(self.shaderProgram)
         glUseProgram(self.shaderProgram)
@@ -69,19 +74,19 @@ class ColorShader:
 	glDeleteShader( fragmentShader );
 
     def setModel(self, model):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgam, "model" ), 1, GL_FALSE, glm.value_ptr( model ) )
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "model" ), 1, GL_FALSE, model)
             
     def setView(self, view):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgam, "view" ), 1, GL_FALSE, glm.value_ptr( view ) )
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "view" ), 1, GL_FALSE, view)
 
     def setProj(self, proj):
-        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgam, "proj" ), 1, GL_FALSE, glm.value_ptr( proj ) )
+        glUniformMatrix4fv( glGetUniformLocation( self.shaderProgram, "proj" ), 1, GL_FALSE, proj)
 
     def setLightPos(self, lightPos):
-        glUniform4fv( glGetUniformLocation( self.shaderProgam, "lightPosition" ), 1, GL_FALSE, glm.value_ptr( lightPos ) )
+        glUniform4fv( glGetUniformLocation( self.shaderProgram, "lightPosition" ), 1, lightPos)
 
     def setDiffCol(self, diffCol):
-        glUniform3fv( glGetUniformLocation( self.shaderProgam, "diffuseColor" ), 1, GL_FALSE, glm.value_ptr( diffCol ) )
+        glUniform3fv( glGetUniformLocation( self.shaderProgram, "diffuseColor" ), 1, diffCol)
 
     def printShaderInfoLog(self, obj):
         infoLogLength = glGetShaderiv(obj, GL_INFO_LOG_LENGTH)
