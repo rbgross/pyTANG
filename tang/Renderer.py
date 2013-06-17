@@ -89,6 +89,24 @@ class Renderer:
             self.wheelPosition = tempWheelPosition
             self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
+        if glfw.GetKey('A'):
+            self.environment.model = hm.rotation(self.environment.model, -1, [0, 1, 0])
+
+        if glfw.GetKey('D'):
+            self.environment.model = hm.rotation(self.environment.model, 1, [0, 1, 0])
+
+        if glfw.GetKey('W'):
+            self.environment.model = hm.rotation(self.environment.model, -1, [1, 0, 0])
+
+        if glfw.GetKey('S'):
+            self.environment.model = hm.rotation(self.environment.model, 1, [1, 0, 0])
+
+        if glfw.GetKey('Q'):
+            self.environment.model = hm.rotation(self.environment.model, -1, [0, 0, 1])
+
+        if glfw.GetKey('E'):
+            self.environment.model = hm.rotation(self.environment.model, 1, [0, 0, 1])
+        
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
             self.hideCube = not self.hideCube
