@@ -124,7 +124,6 @@ class Renderer:
             self.rightPressed = False
 
         if self.rightPressed:
-            print self.environment.model
             self.curMouseX, self.curMouseY = glfw.GetMousePos()
             if self.curMouseX != self.oldMouseX or self.curMouseY != self.oldMouseY:
                 oldVec = self.calcArcBallVector(self.oldMouseX, self.oldMouseY)
