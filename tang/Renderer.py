@@ -60,7 +60,7 @@ class Renderer:
         glfw.SetWindowTitle("TANG")
 
         glEnable(GL_DEPTH_TEST)
-	glEnable(GL_CULL_FACE)
+        glEnable(GL_CULL_FACE)
 
     def readData(self, fileName):
         f = open(fileName, 'r')
