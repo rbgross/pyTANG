@@ -27,22 +27,22 @@ class Controller:
             #self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
         if glfw.GetKey('A'):
-            self.environment.model = hm.rotation(self.environment.model, -1, [0, 1, 0])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [0, 1, 0]), self.environment.model)
 
         if glfw.GetKey('D'):
-            self.environment.model = hm.rotation(self.environment.model, 1, [0, 1, 0])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [0, 1, 0]), self.environment.model)
 
         if glfw.GetKey('W'):
-            self.environment.model = hm.rotation(self.environment.model, -1, [1, 0, 0])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [1, 0, 0]), self.environment.model)
 
         if glfw.GetKey('S'):
-            self.environment.model = hm.rotation(self.environment.model, 1, [1, 0, 0])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [1, 0, 0]), self.environment.model)
 
         if glfw.GetKey('Q'):
-            self.environment.model = hm.rotation(self.environment.model, -1, [0, 0, 1])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [0, 0, 1]), self.environment.model)
 
         if glfw.GetKey('E'):
-            self.environment.model = hm.rotation(self.environment.model, 1, [0, 0, 1])
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [0, 0, 1]), self.environment.model)
         
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
