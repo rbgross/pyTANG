@@ -56,7 +56,7 @@ class Renderer:
         glfw.OpenWindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
         glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
         glfw.OpenWindowHint(glfw.WINDOW_NO_RESIZE, GL_TRUE)
-        glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 0, 0, glfw.WINDOW)
+        glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
         glfw.SetWindowTitle("TANG")
 
         glEnable(GL_DEPTH_TEST)
