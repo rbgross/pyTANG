@@ -18,7 +18,7 @@ def main():
     
     renderer = Renderer(resPath)
     environment = Environment(renderer)
-    controller = Controller(environment)
+    controller = Controller(environment)    
     
     while renderer.windowOpen():
         controller.pollInput()

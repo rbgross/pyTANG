@@ -9,11 +9,17 @@ import numpy as np
 import hommat as hm
 
 class Actor:
-    def __init__(self, renderer, environment):
+    def __init__(self, renderer, environment, mesh):
         self.renderer = renderer
         self.environment = environment
-        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'CubeTest2.obj')))
+
+        #Mesh component
+        self.mesh = mesh
+
+        #Transform component
         self.position = np.array([0.0, 0.0, 0.0], dtype = np.float32)
+
+        #Material component
         self.color = np.array([0.0, 0.0, 0.0], dtype = np.float32)
 
     def draw(self):
