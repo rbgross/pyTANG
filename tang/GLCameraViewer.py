@@ -19,18 +19,31 @@ cameraWidth, cameraHeight = (640, 480)
 class GLCameraViewer:
   """Simple OpenCV frame processor that renders live camera images using OpenGL 3.2 Core Profile."""
   
-  def __init__(self, camera):
+  def __init__(self, camera, isVideo=False, loopVideo=False):
     self.camera = camera
-    # * Set camera frame size
-    #_, self.imageIn = self.camera.read()  # pre-grab
-    self.camera.set(cv.CV_CAP_PROP_FRAME_WIDTH, cameraWidth)
-    self.camera.set(cv.CV_CAP_PROP_FRAME_HEIGHT, cameraHeight)
-    _, self.imageIn = self.camera.read()  # post-grab
+    self.isVideo = isVideo
+    self.loopVideo = loopVideo
+    self.frameCount = 0
+    
+    # * Set camera frame size (if this is a live camera), or read num frames (if video)
+    if not self.isVideo:
+      #_, self.imageIn = self.camera.read()  # pre-grab
+      # NOTE: If camera frame size is not one supported by the hardware, grabbed images are scaled to desired size, discarding aspect-ratio
+      self.camera.set(cv.CV_CAP_PROP_FRAME_WIDTH, cameraWidth)
+      self.camera.set(cv.CV_CAP_PROP_FRAME_HEIGHT, cameraHeight)
+    
+    # * Grab test image and read some properties
+    _, self.imageIn = self.camera.read()  # post-grab (to apply any camera prop changes made)
+    self.frameCount += 1
     print "GLCameraViewer.__init__(): Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT)))
     self.imageSize = (self.imageIn.shape[1], self.imageIn.shape[0])
     self.imageWidth, self.imageHeight = self.imageSize
     print "GLCameraViewer.__init__(): Image size : {}x{}".format(self.imageWidth, self.imageHeight)
-    # NOTE: If camera frame size is not one supported by the hardware, grabbed images are scaled to desired size, discarding aspect-ratio
+    if self.isVideo:
+      self.numVideoFrames = int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT))
+      print "GLCameraViewer.__init__(): Video file with {} frames".format(self.numVideoFrames)
+    
+    self.isOkay = True  # all good, so far
     
     # * Initialize OpenGL texture and framebuffer used to render camera images
     # NOTE: A valid OpenGL context must available at this point
@@ -56,9 +69,21 @@ class GLCameraViewer:
     if self.lensVelY == 0: self.lensVelY = 2
     
   def capture(self):
-    _, self.imageIn = self.camera.read()
+    if self.isVideo and self.loopVideo and self.frameCount >= self.numVideoFrames:
+      self.camera.set(cv.CV_CAP_PROP_POS_FRAMES, 0)
+      self.frameCount = 0
+      print "GLCameraViewer.capture(): Video reset..."
+      # TODO Figure out what's causing the off-by-ten bug (after a reset, the last 10-11 frames cannot be read anymore!)
+    
+    self.isOkay, self.imageIn = self.camera.read()
+    self.frameCount += 1
+    #print "GLCameraViewer.capture(): [Okay? {}] Frame #{} ({}) of {} ({})".format(self.isOkay, self.frameCount, int(self.camera.get(cv.CV_CAP_PROP_POS_FRAMES)), self.numVideoFrames, int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT)))
   
   def process(self):
+    if not self.isOkay:
+      #print "GLCameraViewer.process(): Something not okay! Frame #{} ({}) of {} ({})".format(self.frameCount, int(self.camera.get(cv.CV_CAP_PROP_POS_FRAMES)), self.numVideoFrames, int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT)))
+      return
+    
     # Some sample image processing - just for fun!
     #self.imageOut = self.imageIn  # shallow copy
     self.imageOut = self.imageIn.copy()  # deep copy
