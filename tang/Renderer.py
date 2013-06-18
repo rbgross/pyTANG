@@ -22,20 +22,15 @@ class Renderer:
 
         self.colorShader = Shader(os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.vert')), os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.frag')))
 
-        self.view = hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32))
-        self.setView(self.view)
+        self.cameraMatrix = np.dot(hm.perspective(hm.identity(), 45, float(self.windowWidth) / self.windowHeight, 0.1, 1000.0), hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
+        self.setCameraMatrix(self.cameraMatrix)
 
-        self.proj = hm.perspective(hm.identity(), 45, float(self.windowWidth) / self.windowHeight, 0.1, 1000.0)
-        self.setProj(self.proj)
-        
+    def setCameraMatrix(self, cameraMatrix):
+        self.colorShader.setUniformMat4('view', hm.identity())
+        self.colorShader.setUniformMat4('proj', cameraMatrix)
+
     def setModel(self, model):
         self.colorShader.setUniformMat4('model', model)
-
-    def setView(self, view):
-        self.colorShader.setUniformMat4('view', view)
-
-    def setProj(self, proj):
-        self.colorShader.setUniformMat4('proj', proj)
 
     def setLightPos(self, lightPos):
         self.colorShader.setUniformVec4('lightPosition', lightPos)

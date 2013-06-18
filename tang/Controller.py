@@ -13,18 +13,18 @@ class Controller:
     def __init__(self, environment):
         self.environment = environment
         
-        self.wheelPosition = glfw.GetMouseWheel()
-        self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
-        self.curMouseX = self.oldMouseX
-        self.curMouseY = self.oldMouseY
+        #self.wheelPosition = glfw.GetMouseWheel()
+        #self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
+        #self.curMouseX = self.oldMouseX
+        #self.curMouseY = self.oldMouseY
         self.leftPressed = False
         self.rightPressed = False
 
     def pollInput(self):
-        tempWheelPosition = glfw.GetMouseWheel()
-        if tempWheelPosition != self.wheelPosition:
-            self.wheelPosition = tempWheelPosition
-            self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
+        #tempWheelPosition = glfw.GetMouseWheel()
+        #if tempWheelPosition != self.wheelPosition:
+            #self.wheelPosition = tempWheelPosition
+            #self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
         if glfw.GetKey('A'):
             self.environment.model = hm.rotation(self.environment.model, -1, [0, 1, 0])
