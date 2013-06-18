@@ -52,7 +52,7 @@ class Environment:
         self.dataPoints.append(dataPoint)
 
     def draw(self):
-        if not self.renderer.hideCube:
+        if not self.renderer.input.hideCube:
             for i in xrange(0, 8):
                 self.cubes[i].draw()
 
