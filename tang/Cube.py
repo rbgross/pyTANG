@@ -14,7 +14,7 @@ class Cube:
     def __init__(self, renderer, environment):
         self.renderer = renderer
         self.environment = environment
-        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'CubeTest2.obj')))
+        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Cube.obj')))
         self.position = np.array([0.0, 0.0, 0.0], dtype = np.float32)
         self.color = np.array([0.0, 0.0, 0.0], dtype = np.float32)
 

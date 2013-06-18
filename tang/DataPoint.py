@@ -14,13 +14,12 @@ class DataPoint:
     def __init__(self, renderer, environment):
         self.renderer = renderer
         self.environment = environment
-        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SphereTest.obj')))  # 'C:\\Users\\Ryan\\Game Tests\\SphereTest.obj'
+        self.mesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Sphere.obj')))
         self.position = np.array([0.0, 0.0, 0.0], dtype = np.float32)
         self.color = np.array([0.0, 0.0, 0.0], dtype = np.float32)
 
     def draw(self):
         model = hm.translation(self.environment.model, self.position)
-        model = hm.scale(model, np.array([0.05, 0.05, 0.05], dtype = np.float32))
         self.renderer.setModel(model)
         self.renderer.setDiffCol(self.color)
         self.mesh.draw()
