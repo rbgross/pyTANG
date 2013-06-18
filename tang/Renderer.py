@@ -10,7 +10,7 @@ import numpy as np
 import hommat as hm
 
 from Environment import Environment
-from ColorShader import ColorShader
+from Shader import Shader
 
 class Renderer:
     def __init__(self, resPath=None):
@@ -21,7 +21,7 @@ class Renderer:
 
         self.initialize()
 
-        self.colorShader = ColorShader()
+        self.colorShader = Shader(os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.vert')), os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.frag')))
 
         self.view = hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32))
         self.setView(self.view)
@@ -42,19 +42,19 @@ class Renderer:
         self.readData(os.path.abspath(os.path.join(self.resPath, 'data', 'PointData.txt')))  # 'C:\\Users\\Ryan\\Game Tests\\Data.txt'
 
     def setModel(self, model):
-        self.colorShader.setModel(model)
+        self.colorShader.setUniformMat4('model', model)
 
     def setView(self, view):
-        self.colorShader.setView(view)
+        self.colorShader.setUniformMat4('view', view)
 
     def setProj(self, proj):
-        self.colorShader.setProj(proj)
+        self.colorShader.setUniformMat4('proj', proj)
 
     def setLightPos(self, lightPos):
-        self.colorShader.setLightPos(lightPos)
+        self.colorShader.setUniformVec4('lightPosition', lightPos)
 
     def setDiffCol(self, diffCol):
-        self.colorShader.setDiffCol(diffCol)
+        self.colorShader.setUniformVec3('diffuseColor', diffCol)
 
     def windowOpen(self):
         return glfw.GetWindowParam(glfw.OPENED)
