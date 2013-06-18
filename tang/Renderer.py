@@ -9,9 +9,7 @@ import math
 import numpy as np
 import hommat as hm
 
-from Environment import Environment
 from Shader import Shader
-from Input import Input
 
 class Renderer:
     def __init__(self, resPath=None):
@@ -29,12 +27,6 @@ class Renderer:
 
         self.proj = hm.perspective(hm.identity(), 45, float(self.windowWidth) / self.windowHeight, 0.1, 1000.0)
         self.setProj(self.proj)
-
-        self.environment = Environment(self)
-
-        self.input = Input(self.environment)
-
-        self.readData(os.path.abspath(os.path.join(self.resPath, 'data', 'PointData.txt')))
         
     def setModel(self, model):
         self.colorShader.setUniformMat4('model', model)
@@ -54,14 +46,11 @@ class Renderer:
     def windowOpen(self):
         return glfw.GetWindowParam(glfw.OPENED)
 
-    def draw(self):
-        self.input.pollInput()
-        
+    def startDraw(self):        
         glClearColor(0.0, 0.0, 0.0, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        
-        self.environment.draw()
 
+    def endDraw(self):
         glfw.SwapBuffers()
 
     def initialize(self):

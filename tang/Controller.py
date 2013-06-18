@@ -9,7 +9,7 @@ import math
 import numpy as np
 import hommat as hm
 
-class Input:
+class Controller:
     def __init__(self, environment):
         self.environment = environment
         
@@ -17,7 +17,6 @@ class Input:
         self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
         self.curMouseX = self.oldMouseX
         self.curMouseY = self.oldMouseY
-        self.hideCube = False
         self.leftPressed = False
         self.rightPressed = False
 
@@ -47,7 +46,7 @@ class Input:
         
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
-            self.hideCube = not self.hideCube
+            self.environment.hideCube = not self.environment.hideCube
 
         if not glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = False
