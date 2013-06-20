@@ -107,17 +107,29 @@ class GLCameraViewer:
       self.lensVelY = -self.lensVelY
   
   def render(self):
-    glBindTexture(GL_TEXTURE_2D, self.texOutId)
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, self.imageOut)
-    
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, self.framebufferId)
-    glBlitFramebuffer(
-      0, 0, self.imageWidth, self.imageHeight,  # source rect
-      0, windowHeight, windowWidth, 0,          # destination rect (NOTE: Y is flipped)
-      GL_COLOR_BUFFER_BIT, GL_LINEAR)
-    
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
-    glBindTexture(GL_TEXTURE_2D, 0)
+    try:
+      self.imageOut = cv2.flip(self.imageOut, 0)  # flip OpenCV image vertically to match OpenGL convention (necessary on Windows because of glBlitFramebuffer problem; avoid if possible)
+      
+      glBindTexture(GL_TEXTURE_2D, self.texOutId)
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, self.imageOut)
+      
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, self.framebufferId)
+      # TODO Fix glBlitFramebuffer() problem on Windows, or use an alternate method to draw CV image
+      #glBlitFramebuffer(
+      #  0, 0, self.imageWidth, self.imageHeight,  # source rect
+      #  0, windowHeight, windowWidth, 0,          # destination rect (NOTE: Y is flipped)
+      #  GL_COLOR_BUFFER_BIT, GL_LINEAR)  # NOTE trying to flip while blitting doesn't work on Windows
+      
+      glBlitFramebuffer(
+        0, 0, self.imageWidth, self.imageHeight,  # source rect
+        0, 0,     windowWidth,     windowHeight,  # destination rect
+        GL_COLOR_BUFFER_BIT, GL_LINEAR)  # direct blit without any flipping works on Windows
+      
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
+      glBindTexture(GL_TEXTURE_2D, 0)
+    except GLError as e:
+      print "GLCameraViewer.render():", repr(e)  # print str(e) for more details, or don't catch this error to break out
+      cv2.imshow("Camera Image", self.imageOut)  # optional, so that we can verify OpenCV is working
   
   def cleanUp(self):
     if bool(glDeleteFramebuffers):
