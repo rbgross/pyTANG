@@ -19,7 +19,7 @@ class ActorFactory:
 
     def loadResources(self):
         self.cubeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Cube.obj')))
-        self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Sphere.obj')))
+        self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SmallSphere.obj')))
 
     def makeBlueCube(self):
         cube = Actor(self.renderer, self.environment, self.cubeMesh)
