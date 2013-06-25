@@ -6,12 +6,14 @@ import glfw
 from ctypes import *
 import sys
 import math
+import time
 import numpy as np
 import hommat as hm
 
 class Controller:
     def __init__(self, environment):
         self.environment = environment
+        self.timer = time.clock()
         
         #self.wheelPosition = glfw.GetMouseWheel()
         #self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
@@ -21,28 +23,32 @@ class Controller:
         self.rightPressed = False
 
     def pollInput(self):
+        currentTime = time.clock()
+        elapsedTime = currentTime - self.timer
+        self.timer = currentTime
+        
         #tempWheelPosition = glfw.GetMouseWheel()
         #if tempWheelPosition != self.wheelPosition:
             #self.wheelPosition = tempWheelPosition
             #self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
         if glfw.GetKey('A'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [0, 1, 0]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 1, 0]), self.environment.model)
 
         if glfw.GetKey('D'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [0, 1, 0]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 1, 0]), self.environment.model)
 
         if glfw.GetKey('W'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [1, 0, 0]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [1, 0, 0]), self.environment.model)
 
         if glfw.GetKey('S'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [1, 0, 0]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [1, 0, 0]), self.environment.model)
 
         if glfw.GetKey('Q'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 1, [0, 0, 1]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.environment.model)
 
         if glfw.GetKey('E'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -1, [0, 0, 1]), self.environment.model)
+            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 0, 1]), self.environment.model)
         
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
