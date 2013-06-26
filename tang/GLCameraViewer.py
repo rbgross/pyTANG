@@ -1,8 +1,9 @@
 # Python imports
 import sys
+import numpy as np
+import logging
 
 # OpenCV imports
-import numpy as np
 import cv2
 import cv2.cv as cv
 
@@ -16,6 +17,7 @@ import glfw
 windowWidth, windowHeight = (640, 480)
 cameraWidth, cameraHeight = (640, 480)
 
+
 class GLCameraViewer:
   """Simple OpenCV frame processor that renders live camera images using OpenGL 3.2 Core Profile."""
   
@@ -24,6 +26,9 @@ class GLCameraViewer:
     self.isVideo = isVideo
     self.loopVideo = loopVideo
     self.frameCount = 0
+    
+    # * Acquire logger instance
+    self.logger = logging.getLogger(self.__class__.__name__)
     
     # * Set camera frame size (if this is a live camera), or read num frames (if video)
     if not self.isVideo:
@@ -35,13 +40,13 @@ class GLCameraViewer:
     # * Grab test image and read some properties
     _, self.imageIn = self.camera.read()  # post-grab (to apply any camera prop changes made)
     self.frameCount += 1
-    print "GLCameraViewer.__init__(): Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT)))
+    self.logger.info("Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT))))
     self.imageSize = (self.imageIn.shape[1], self.imageIn.shape[0])
     self.imageWidth, self.imageHeight = self.imageSize
-    print "GLCameraViewer.__init__(): Image size : {}x{}".format(self.imageWidth, self.imageHeight)
+    self.logger.info("Image size : {}x{}".format(self.imageWidth, self.imageHeight))
     if self.isVideo:
       self.numVideoFrames = int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT))
-      print "GLCameraViewer.__init__(): Video file with {} frames".format(self.numVideoFrames)
+      self.logger.info("Video file with {} frames".format(self.numVideoFrames))
     
     self.isOkay = True  # all good, so far
     
@@ -72,7 +77,7 @@ class GLCameraViewer:
     if self.isVideo and self.loopVideo and self.frameCount >= self.numVideoFrames:
       self.camera.set(cv.CV_CAP_PROP_POS_FRAMES, 0)
       self.frameCount = 0
-      print "GLCameraViewer.capture(): Video reset..."
+      self.logger.debug("Video reset...")
       # TODO Figure out what's causing the off-by-ten bug (after a reset, the last 10-11 frames cannot be read anymore!)
     
     self.isOkay, self.imageIn = self.camera.read()
@@ -128,7 +133,7 @@ class GLCameraViewer:
       glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
       glBindTexture(GL_TEXTURE_2D, 0)
     except GLError as e:
-      print "GLCameraViewer.render():", repr(e)  # print str(e) for more details, or don't catch this error to break out
+      self.logger.error(repr(e))  # print str(e) for more details, or don't catch this error to break out
       cv2.imshow("Camera Image", self.imageOut)  # optional, so that we can verify OpenCV is working
   
   def cleanUp(self):
@@ -183,11 +188,11 @@ def initGraphics():
   glfw.Disable(glfw.AUTO_POLL_EVENTS)
   glfw.Enable(glfw.KEY_REPEAT)
   
-  print "initGraphics(): OpenGL version:", glGetString(GL_VERSION)  # glfw.GetGLVersion()
-  print "initGraphics(): GLSL version  :", glGetString(GL_SHADING_LANGUAGE_VERSION)
-  print "initGraphics(): Renderer      :", glGetString(GL_RENDERER)
-  print "initGraphics(): Vendor        :", glGetString(GL_VENDOR)
-  print "initGraphics(): Window size   : {}x{}".format(windowWidth, windowHeight)
+  logging.info("OpenGL version: %s", glGetString(GL_VERSION))  # glfw.GetGLVersion()
+  logging.info("GLSL version  : %s", glGetString(GL_SHADING_LANGUAGE_VERSION))
+  logging.info("Renderer      : %s", glGetString(GL_RENDERER))
+  logging.info("Vendor        : %s", glGetString(GL_VENDOR))
+  logging.info("Window size   : {}x{}".format(windowWidth, windowHeight))
   
   # * Initialize OpenGL parameters
   glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -210,4 +215,6 @@ def printProgramInfoLog(obj):
 
 
 if __name__ == '__main__':
+  # Set up a simple logging scheme for standalone operation
+  logging.basicConfig(format="%(levelname)s | %(module)s | %(funcName)s() | %(message)s", level=logging.DEBUG)
   main()
