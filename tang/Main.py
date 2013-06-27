@@ -4,6 +4,7 @@ import os
 import time
 import numpy as np
 import logging.config
+from threading import Thread
 
 # GL imports
 from OpenGL.arrays.vbo import VBO
@@ -47,11 +48,12 @@ def usage():
 def main():
     usage()
     
+    # * Obtain resource path and other parameters
     # TODO Start using optparse/argparse instead of positional arguments
     resPath = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join("..", "res"))  # NOTE only absolute path seems to work properly
     #print "main(): Resource path:", resPath  # only needed if logging is not working
     
-    # Setup logging
+    # * Setup logging
     logConfigFile = os.path.abspath(os.path.join(resPath, "config", "logging.conf"))  # TODO make log config filename an optional argument
     os.chdir(os.path.dirname(logConfigFile))  # change to log config file's directory (it contains relative paths)
     logging.config.fileConfig(logConfigFile)  # load configuration
@@ -60,9 +62,10 @@ def main():
     #logger.debug("Logging system ready")  # Example: Log a debug message
     #logger.log(INFO, "Resource path: %s", resPath)  # Example: Log a message with a specified level (INFO) and formatted args.
     if not haveCV:
-      logger.warn("OpenCV library not available")  # Example: Log a warning message (will be stored in log file)
+        logger.warn("OpenCV library not available")  # Example: Log a warning message (will be stored in log file)
     
-    cameraDevice = 0  # NOTE A default video filename can be specified here, but isVideo must be set to true then
+    # * Obtain camera device no. / input video filename
+    cameraDevice = 0  # NOTE A default video filename can be specified here, but isVideo must also be set to true then
     isVideo = False
     if len(sys.argv) > 2:
         try:
@@ -71,30 +74,47 @@ def main():
             cameraDevice = os.path.abspath(sys.argv[2])  # fallback: treat sys.argv[2] as string (filename)
             isVideo = True
     
+    # * Initialize GL rendering context and associated objects
     renderer = Renderer(resPath)
     environment = Environment(renderer)
     controller = Controller(environment)
     
+    # * Open camera/video file and start vision loop, if OpenCV is available
     if haveCV:
         logger.debug("Camera device / video input file: {}".format(cameraDevice))
         camera = cv2.VideoCapture(cameraDevice)
-        videoInput = VideoInput(camera, options={ 'isVideo': isVideo, 'loopVideo': True, 'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight })
-        processor = FrameProcessorGL(options={'windowWidth': windowWidth, 'windowHeight': windowHeight })
-        processor.initialize(videoInput.image, 0.0)
+        options={ 'isVideo': isVideo, 'loopVideo': True,
+                  'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
+                  'windowWidth': windowWidth, 'windowHeight': windowHeight }
+        videoInput = VideoInput(camera, options)
+        visionProcessor = FrameProcessorGL(options)  # our CV-GL renderer; TODO have separate processor for tracking (or one combined?)
+        visionProcessor.initialize(videoInput.image, 0.0)
+        
+        def visionLoop():
+            logger.debug("[Vision loop] Starting...")
+            while renderer.windowOpen():
+                videoInput.read()
+                visionProcessor.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
+            logger.debug("[Vision loop] Done.")
+        
+        visionThread = Thread(target=visionLoop)
+        visionThread.start()
     
+    # * Start GL render loop
     while renderer.windowOpen():
         controller.pollInput()
         renderer.startDraw()
-        if haveCV:
-            videoInput.read()
-            processor.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
-            processor.render()
+        visionProcessor.render()
         environment.draw()
         renderer.endDraw()
     
+    # * Clean up
     if haveCV:
+        logger.debug("Waiting on vision thread to finish...")
+        visionThread.join()
         logger.debug("Cleaning up...")
         camera.release()
+
 
 if __name__ == '__main__':
     main()

@@ -17,14 +17,14 @@ class FrameProcessor:
     self.debug = options.get('debug', False)
     self.logger = logging.getLogger(self.__class__.__name__)
     self.active = False  # set to True once initialized
-    # NOTE Subclasses should call FrameProcessor.__init__(self, options) first, then process options, and finally set active = True
+    # NOTE Subclasses should call FrameProcessor.__init__(self, options) first, then process options
   
   def initialize(self, image, timeNow):
     self.image = image
     self.imageSize = (self.image.shape[1], self.image.shape[0])
     self.logger.debug("Image size: {}x{}".format(self.imageSize[0], self.imageSize[1]))
     self.imageOut = self.image
-    self.active = True
+    self.active = True  # must be set to true on initialize(), otherwise process() may not get called when in a pool
   
   def process(self, image, timeNow):
     self.image = image

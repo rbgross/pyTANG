@@ -35,21 +35,35 @@ class FrameProcessorGL(FrameProcessor):
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0)
   
   def initialize(self, image, timeNow):
-    FrameProcessor.initialize(self, image, timeNow)
-    self.imageWidth, self.imageHeight = self.imageSize
+    self.image = image
+    self.imageSize = (self.image.shape[1], self.image.shape[0])
+    self.logger.debug("Image size: {}x{}".format(self.imageSize[0], self.imageSize[1]))
+    self.imageWidth, self.imageHeight = self.imageSize  # will be used frequently
+    self.imageOut = self.image.copy()
+    self.imageRendered = False
+    self.active = True
+  
+  def process(self, image, timeNow):
+    self.image = image
+    
+    if self.imageRendered and self.image is not None:
+      self.imageOut = self.image.copy()  # only copy if the last one had been used (at least once)
+      self.imageRendered = False
+    
+    return self.imageOut
   
   def render(self):
     try:
-      self.imageOut = cv2.flip(self.imageOut, 0)  # flip OpenCV image vertically to match OpenGL convention (necessary on Windows because of glBlitFramebuffer problem; avoid if possible)
+      imageToRender = cv2.flip(self.imageOut, 0)  # flip OpenCV image vertically to match OpenGL convention (necessary on Windows because of glBlitFramebuffer problem; avoid if possible)
       
       glBindTexture(GL_TEXTURE_2D, self.texOutId)
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, self.imageOut)
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, imageToRender)
       
       glBindFramebuffer(GL_READ_FRAMEBUFFER, self.framebufferId)
       # TODO Fix glBlitFramebuffer() problem on Windows, or use an alternate method to draw CV image
       #glBlitFramebuffer(
-      #  0, 0, self.imageWidth, self.imageHeight,  # source rect
-      #  0, windowHeight, windowWidth, 0,          # destination rect (NOTE: Y is flipped)
+      #  0, 0, self.imageWidth, self.imageHeight,    # source rect
+      #  0, self.windowHeight, self.windowWidth, 0,  # destination rect (NOTE: Y is flipped)
       #  GL_COLOR_BUFFER_BIT, GL_LINEAR)  # NOTE trying to flip while blitting doesn't work on Windows
       
       glBlitFramebuffer(
@@ -59,6 +73,8 @@ class FrameProcessorGL(FrameProcessor):
       
       glBindFramebuffer(GL_READ_FRAMEBUFFER, 0)
       glBindTexture(GL_TEXTURE_2D, 0)
+      
+      self.imageRendered = True
     except GLError as e:
       self.logger.error(repr(e))  # print str(e) for more details, or don't catch this error to break out
       if self.gui and self.debug:
