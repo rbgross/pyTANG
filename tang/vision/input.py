@@ -17,7 +17,7 @@ class VideoInput:
     self.isVideo = options.get('isVideo', False)
     self.loopVideo = options.get('loopVideo', True)
     self.cameraWidth = options.get('cameraWidth', 640)
-    self.cameraWidth = options.get('cameraHeight', 480)
+    self.cameraHeight = options.get('cameraHeight', 480)
     
     # * Acquire logger and initialize other members
     self.logger = logging.getLogger(self.__class__.__name__)
