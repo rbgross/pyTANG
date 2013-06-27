@@ -25,7 +25,14 @@ from Renderer import Renderer
 from Environment import Environment
 from Controller import Controller
 if haveCV:
-    from GLCameraViewer import GLCameraViewer
+    from vision.input import VideoInput
+    from vision.gl import FrameProcessorGL
+
+# Globals
+# NOTE: glBlitFramebuffer() doesn't play well if source and destination sizes are different, so keep these same
+windowWidth, windowHeight = (640, 480)
+cameraWidth, cameraHeight = (640, 480)
+
 
 def usage():
     print "Usage: {} [<resource_path> [<camera_device> | <video_filename>]]".format(sys.argv[0])
@@ -71,21 +78,22 @@ def main():
     if haveCV:
         logger.debug("Camera device / video input file: {}".format(cameraDevice))
         camera = cv2.VideoCapture(cameraDevice)
-        cameraViewer = GLCameraViewer(camera, isVideo, True)
+        videoInput = VideoInput(camera, options={ 'isVideo': isVideo, 'loopVideo': True, 'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight })
+        processor = FrameProcessorGL(options={'windowWidth': windowWidth, 'windowHeight': windowHeight })
+        processor.initialize(videoInput.image, 0.0)
     
     while renderer.windowOpen():
         controller.pollInput()
         renderer.startDraw()
         if haveCV:
-            cameraViewer.capture()
-            cameraViewer.process()  # NOTE this can be computationally expensive
-            cameraViewer.render()
+            videoInput.read()
+            processor.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
+            processor.render()
         environment.draw()
         renderer.endDraw()
-
+    
     if haveCV:
         logger.debug("Cleaning up...")
-        cameraViewer.cleanUp()
         camera.release()
 
 if __name__ == '__main__':
