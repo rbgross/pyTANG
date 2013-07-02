@@ -61,11 +61,3 @@ class Renderer:
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
-
-    def readData(self, fileName):
-        f = open(fileName, 'r')
-        for line in f: 
-            s = line.split()
-            position = np.array([s[0], s[1], s[2]], dtype = np.float32)
-            self.environment.addDataPoint(position)
-    

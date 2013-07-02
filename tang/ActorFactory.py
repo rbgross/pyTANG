@@ -21,27 +21,10 @@ class ActorFactory:
         self.cubeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Cube.obj')))
         self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SmallSphere.obj')))
 
-    def makeBlueCube(self):
+    def makeCube(self):
         cube = Actor(self.renderer, self.environment, self.cubeMesh)
-        cube.color = np.array([0.3, 0.3, 1.0], dtype = np.float32)
-        return cube
-
-    def makeRedCube(self):
-        cube = Actor(self.renderer, self.environment, self.cubeMesh)
-        cube.color = np.array([1.0, 0.3, 0.3], dtype = np.float32)
-        return cube
-
-    def makeGreenCube(self):
-        cube = Actor(self.renderer, self.environment, self.cubeMesh)
-        cube.color = np.array([0.3, 1.0, 0.3], dtype = np.float32)
-        return cube
-
-    def makeYellowCube(self):
-        cube = Actor(self.renderer, self.environment, self.cubeMesh)
-        cube.color = np.array([1.0, 1.0, 0.3], dtype = np.float32)
         return cube
 
     def makeDataPoint(self):
         dataPoint = Actor(self.renderer, self.environment, self.sphereMesh)
-        dataPoint.color = np.array([1.0, 1.0, 1.0], dtype = np.float32)
         return dataPoint
