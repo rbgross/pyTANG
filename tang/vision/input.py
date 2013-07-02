@@ -60,6 +60,8 @@ class VideoInput:
     
     self.isOkay, self.image = self.camera.read()
     self.frameCount += 1
+    
+    return self.isOkay
 
 
 def run(processor=FrameProcessor(options={ 'gui': True, 'debug': True }), gui=True, debug=True):  # default options

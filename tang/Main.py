@@ -28,6 +28,7 @@ from Controller import Controller
 if haveCV:
     from vision.input import VideoInput
     from vision.gl import FrameProcessorGL
+    from vision.colortracking import ColorTracker
 
 # Globals
 # NOTE: glBlitFramebuffer() doesn't play well if source and destination sizes are different, so keep these same
@@ -83,18 +84,27 @@ def main():
     if haveCV:
         logger.debug("Camera device / video input file: {}".format(cameraDevice))
         camera = cv2.VideoCapture(cameraDevice)
-        options={ 'isVideo': isVideo, 'loopVideo': True,
+        options={ 'gui': '--gui' in sys.argv, 'debug': '--debug' in sys.argv,
+                  'isVideo': isVideo, 'loopVideo': True,
                   'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                   'windowWidth': windowWidth, 'windowHeight': windowHeight }
         videoInput = VideoInput(camera, options)
-        visionProcessor = FrameProcessorGL(options)  # our CV-GL renderer; TODO have separate processor for tracking (or one combined?)
-        visionProcessor.initialize(videoInput.image, 0.0)
+        colorTracker = ColorTracker(options)  # color marker tracker
+        imageBlitter = FrameProcessorGL(options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
+        # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
+        colorTracker.initialize(videoInput.image, 0.0)
+        imageBlitter.initialize(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
         
         def visionLoop():
             logger.debug("[Vision loop] Starting...")
             while renderer.windowOpen():
-                videoInput.read()
-                visionProcessor.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
+                if videoInput.read():
+                  colorTracker.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
+                  imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
+                  # Rotate model according to tracked cube orientation (NOTE Y and Z axes are swapped between CV and GL)
+                  environment.model = hm.rotation_radians(hm.identity(), colorTracker.rvec[0][0], [1, 0, 0])
+                  environment.model = np.dot(hm.rotation_radians(hm.identity(), colorTracker.rvec[1][0], [0, 1, 0]), environment.model)
+                  environment.model = np.dot(hm.rotation_radians(hm.identity(), -colorTracker.rvec[2][0], [0, 0, 1]), environment.model)
             logger.debug("[Vision loop] Done.")
         
         visionThread = Thread(target=visionLoop)
@@ -104,7 +114,7 @@ def main():
     while renderer.windowOpen():
         controller.pollInput()
         renderer.startDraw()
-        visionProcessor.render()
+        imageBlitter.render()
         environment.draw()
         renderer.endDraw()
     

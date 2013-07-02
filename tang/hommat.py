@@ -43,11 +43,11 @@ def translation(old, trans):
     M = np.identity(4, dtype=np.float32)
     M[:3, 3] = trans[:3]
     return np.dot(old, M)
-    
-def rotation(old, angle, vec):
-    '''Multiplies the old matrix with a rotation around a vector.'''
-    cosa = math.cos(angle * math.pi / 180)
-    sina = math.sin(angle * math.pi / 180)
+
+def rotation_radians(old, angle, vec):
+    '''Multiplies the old matrix with a rotation around a vector (angle in radians).'''
+    cosa = math.cos(angle)
+    sina = math.sin(angle)
     cosa1 = 1 - cosa
     M = np.array([[vec[0]**2 * cosa1 + cosa             , vec[0] * vec[1] * cosa1 - vec[2]*sina, vec[0] * vec[2] * cosa1 + vec[1]*sina, 0],
                   [vec[1] * vec[0] * cosa1 + vec[2]*sina, vec[1]**2 * cosa1 + cosa             , vec[1] * vec[2] * cosa1 - vec[0]*sina, 0],
@@ -55,7 +55,11 @@ def rotation(old, angle, vec):
                   [0,0,0,1]
                  ], dtype=np.float32)
     return np.dot(old, M)
-          
+
+def rotation(old, angle, vec):
+    '''Multiplies the old matrix with a rotation around a vector (angle in degrees).'''
+    return rotation_radians(old, angle * math.pi / 180, vec)
+
 def scale(old, axes):
     '''Multiplies the old matrix with a scaleing matrix.'''
     M = np.array([[axes[0], 0, 0, 0],
