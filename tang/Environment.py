@@ -19,7 +19,7 @@ class Environment:
         self.light = Light(self.renderer)
         
         self.actorFactory = ActorFactory(self.renderer, self)
-        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'Scene.txt')))
+        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'DataScene.txt')))
 
     def readData(self, fileName):
         self.actors = []
@@ -32,11 +32,16 @@ class Environment:
                     cube.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
                     cube.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
                     self.actors.append(cube)
-                elif s[0] == 'DataPoint':
+                if s[0] == 'DataPoint':
                     dataPoint = self.actorFactory.makeDataPoint()
                     dataPoint.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
                     dataPoint.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
                     self.actors.append(dataPoint)
+                elif s[0] == 'Dragon':
+                    dragon = self.actorFactory.makeDragon()
+                    dragon.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
+                    dragon.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
+                    self.actors.append(dragon)
 
     def draw(self):
         if not self.hideCube:
