@@ -109,7 +109,7 @@ class ColorFilterProcessor(FrameProcessor):
       cv2.createTrackbar("Val min", self.winName, self.colorFilter.lower[2], HSVFilter.maxHSV[2], self.onTrackbarChange)
       cv2.createTrackbar("Val max", self.winName, self.colorFilter.upper[2], HSVFilter.maxHSV[2], self.onTrackbarChange)
     
-    self.logi("initialize", "Trying to load filter bank: \"{0}\"".format(self.filterBankFilename))
+    self.logger.info("Trying to load filter bank: \"{0}\"".format(self.filterBankFilename))
     if self.readFilterBankJSON(self.filterBankFilename):  # load default filter bank
       self.state = self.State.LIVE  # if successful, switch to LIVE mode
       self.active = True
@@ -126,7 +126,7 @@ class ColorFilterProcessor(FrameProcessor):
       print "\tr\tRead bank from file (replaces current bank)"
       print "\tt\tToggle TRAIN and LIVE modes"
     
-    self.logi("initialize", "State: " + self.State.toString(self.state))
+    self.logger.info("State: " + self.State.toString(self.state))
   
   def process(self, imageIn, timeNow):
     self.image = imageIn

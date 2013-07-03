@@ -101,10 +101,14 @@ def main():
                 if videoInput.read():
                   colorTracker.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
                   imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
-                  # Rotate model according to tracked cube orientation (NOTE Y and Z axes are swapped between CV and GL)
-                  environment.model = hm.rotation_radians(hm.identity(), colorTracker.rvec[0][0], [1, 0, 0])
-                  environment.model = np.dot(hm.rotation_radians(hm.identity(), colorTracker.rvec[1][0], [0, 1, 0]), environment.model)
+                  
+                  # Rotate model according to tracked cube's orientation (NOTE Y and Z axis directions are inverted between CV and GL)
+                  environment.model = hm.rotation_radians(hm.identity(), colorTracker.rvec[0][0], [1, 0, 0])  # absolute angle (equiv. to loading an identity matrix and then rotating it)
+                  environment.model = np.dot(hm.rotation_radians(hm.identity(), -colorTracker.rvec[1][0], [0, 1, 0]), environment.model)
                   environment.model = np.dot(hm.rotation_radians(hm.identity(), -colorTracker.rvec[2][0], [0, 0, 1]), environment.model)
+                  
+                  # Translate model according to tracked cube's location (NOTE Y and Z axis directions are inverted between CV and GL)
+                  environment.model = np.dot(hm.translation(hm.identity(), np.float32([colorTracker.tvec[0][0] * 1, -colorTracker.tvec[1][0] * 1, -colorTracker.tvec[2][0] * 1])), environment.model)
             logger.debug("[Vision loop] Done.")
         
         visionThread = Thread(target=visionLoop)

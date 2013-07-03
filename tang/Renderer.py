@@ -22,7 +22,7 @@ class Renderer:
 
         self.colorShader = Shader(os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.vert')), os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.frag')))
 
-        self.cameraMatrix = np.dot(hm.perspective(hm.identity(), 45, float(self.windowWidth) / self.windowHeight, 0.1, 1000.0), hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
+        self.cameraMatrix = np.dot(hm.perspective(hm.identity(), 35, float(self.windowWidth) / self.windowHeight, 1.0, 1000.0), hm.lookat(hm.identity(), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, -1.0, 1.0], dtype = np.float32)))
         self.setCameraMatrix(self.cameraMatrix)
 
     def setCameraMatrix(self, cameraMatrix):

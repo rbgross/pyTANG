@@ -19,37 +19,38 @@ doRenderCube = True
 doRenderVolume = False
 
 # Camera calibration
-# TODO calibrate camera using paper-printed pattern on cardboard
-camera_params_file = "../../config/camera_params_squares.yml"  # NOTE YAML parsing is broken in OpenCV
+# TODO calibrate camera using printed pattern on cardboard, save to config file, read here
 '''
 camera_params = np.float64(
   [[9.7708949876746601e+02, 0., 6.2482145912532496e+02],
    [0., 9.7656102551569313e+02, 3.5368190432771917e+02],
    [0., 0., 1.]])
+dist_coeffs = np.float64([-3.0379710721357184e-01, 2.1133934755379138e+00, 1.8317127842586893e-04, 4.0143088611053151e-04, -5.6225773846527973e+00])
 '''
-f = 0.5
+f = 750  # fx = fy = f  # focal length in pixel units
 w = 640
-h = 320
+h = 480
 camera_params = np.float64(
-  [[f*w, 0, 0.5*(w-1)],
-   [0, f*w, 0.5*(h-1)],
-   [0.0,0.0,      1.0]])
-#dist_coeffs = np.float64([-3.0379710721357184e-01, 2.1133934755379138e+00, 1.8317127842586893e-04, 4.0143088611053151e-04, -5.6225773846527973e+00])
-dist_coeffs = np.zeros(5)
+  [[  f, 0.0, w / 2],
+   [0.0,   f, h / 2],
+   [0.0, 0.0,   1.0]])
+dist_coeffs = np.zeros(5)  # distortion coefficients only matter for high accuracy tracking
 
 # Bounding box/cube
 cube_vertices = np.float32(
-  [[ 0,  0,  0],
-   [ 1,  0,  0],
-   [ 1,  1,  0],
-   [ 0,  1,  0],
-   [ 0,  0,  1],
-   [ 1,  0,  1],
+  [[ -1,  -1,  -1],
+   [ 1,  -1,  -1],
+   [ 1,  1,  -1],
+   [ -1,  1,  -1],
+   [ -1,  -1,  1],
+   [ 1,  -1,  1],
    [ 1,  1,  1],
-   [ 0,  1,  1]])
+   [ -1,  1,  1]])
 cube_edges = [(0, 1), (1, 2), (2, 3), (3, 0),
               (4, 5), (5, 6), (6, 7), (7, 4),
               (0, 4), (1, 5), (2, 6), (3, 7)]
+cube_scale = [10, 10, 10]  # TODO ensure cube is scaled correctly (check units)
+
 # Rect
 #square_tag_by_vertex = ['red', 'blue', 'green', 'yellow']
 #square_vertex_by_tag = { 'red': 0, 'blue': 1, 'green': 2, 'yellow': 3 }
@@ -62,12 +63,12 @@ for tag, vertex in square_vertex_by_tag.iteritems():
   square_tag_by_vertex[vertex] = tag
 
 # Color filters
-redFilter = HSVFilter(np.array([175, 100, 75], np.uint8), np.array([10, 255, 255], np.uint8))
+redFilter = HSVFilter(np.array([175, 100, 75], np.uint8), np.array([5, 255, 255], np.uint8))
 blueFilter = HSVFilter(np.array([100, 100, 75], np.uint8), np.array([115, 255, 255], np.uint8))
-orangeFilter = HSVFilter(np.array([10, 150, 100], np.uint8), np.array([20, 255, 255], np.uint8))
+orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([15, 255, 255], np.uint8))
 #greenFilter = HSVFilter(np.array([70, 100, 75], np.uint8), np.array([90, 255, 255], np.uint8))
 greenFilter = HSVFilter(np.array([60, 64, 32], np.uint8), np.array([90, 255, 255], np.uint8))  # dark green
-yellowFilter = HSVFilter(np.array([25, 120, 100], np.uint8), np.array([35, 255, 255], np.uint8))
+yellowFilter = HSVFilter(np.array([16, 85, 150], np.uint8), np.array([44, 255, 255], np.uint8))
 purpleFilter = HSVFilter(np.array([110, 32, 32], np.uint8), np.array([140, 255, 255], np.uint8))
 
 class Blob:
@@ -130,8 +131,7 @@ class ColorTracker(FrameProcessor):
     self.cube_vertices = cube_vertices * scale + shift  # scaled and shifted
     '''
     
-    scale = [145, 145, 145]
-    self.cube_vertices = cube_vertices * scale
+    self.cube_vertices = cube_vertices * cube_scale
     #self.cube_vertices = cube_vertices
     self.cube_edges = cube_edges
     self.base_vertices = self.cube_vertices[:4]  # first 4 vertices of cube form the base square
