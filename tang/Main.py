@@ -95,8 +95,6 @@ def main():
         colorTracker.initialize(videoInput.image, 0.0)
         imageBlitter.initialize(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
         
-        rvec = np.float32([[0.0], [0.0], [0.0]])  # 3x1 rotation vector
-        tvec = np.float32([[0.0], [0.0], [0.0]])  # 3x1 translation vector
         def visionLoop():
             logger.debug("[Vision loop] Starting...")
             while renderer.windowOpen():
@@ -105,16 +103,8 @@ def main():
                   imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
                   
                   # Rotate and translate model to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
-                  rvec[0][0] = colorTracker.rvec[0][0]
-                  rvec[1][0] = -colorTracker.rvec[1][0]
-                  rvec[2][0] = -colorTracker.rvec[2][0]
-                  
-                  tvec[0][0] = colorTracker.tvec[0][0]
-                  tvec[1][0] = -colorTracker.tvec[1][0]
-                  tvec[2][0] = -colorTracker.tvec[2][0]
-                  
-                  environment.model[0:3, 0:3], _ = cv2.Rodrigues(rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
-                  environment.model[0:3, 3] = tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
+                  environment.model[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
+                  environment.model[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
             logger.debug("[Vision loop] Done.")
         
         visionThread = Thread(target=visionLoop)

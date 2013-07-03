@@ -113,8 +113,8 @@ class ColorTracker(FrameProcessor):
     self.filterBank = dict(red=redFilter, blue=blueFilter, orange=orangeFilter, yellow=yellowFilter)  # Cube: RBOY
     self.masks = { }
     self.morphOpenKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
-    self.rvec = np.float32([[0.0], [0.0], [0.0]])
-    self.tvec = np.float32([[0.0], [0.0], [0.0]])
+    self.rvec = np.zeros((3, 1), dtype=np.float32)
+    self.tvec = np.zeros((3, 1), dtype=np.float32)
     
     # * Read in camera parameters
     # NOTE defined as module objects
