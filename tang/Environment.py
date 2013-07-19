@@ -32,6 +32,11 @@ class Environment:
                     cube.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
                     cube.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
                     self.actors.append(cube)
+                if s[0] == 'Edge':
+                    edge = self.actorFactory.makeEdge()
+                    edge.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
+                    edge.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
+                    self.actors.append(edge)                
                 if s[0] == 'DataPoint':
                     dataPoint = self.actorFactory.makeDataPoint()
                     dataPoint.position = np.array([s[2], s[3], s[4]], dtype = np.float32)

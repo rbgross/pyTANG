@@ -19,12 +19,17 @@ class ActorFactory:
 
     def loadResources(self):
         self.cubeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Cube.obj')))
+        self.edgeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'CubeEdge.obj')))
         self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SmallSphere.obj')))
         self.dragonMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Dragon.obj')))
 
     def makeCube(self):
         cube = Actor(self.renderer, self.environment, self.cubeMesh)
         return cube
+
+    def makeEdge(self):
+        edge = Actor(self.renderer, self.environment, self.edgeMesh)
+        return edge
 
     def makeDataPoint(self):
         dataPoint = Actor(self.renderer, self.environment, self.sphereMesh)
