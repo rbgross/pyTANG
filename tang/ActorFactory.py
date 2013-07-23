@@ -22,6 +22,7 @@ class ActorFactory:
         self.edgeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'CubeEdge.obj')))
         self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SmallSphere.obj')))
         self.dragonMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Dragon.obj')))
+        self.pointMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'TinySphere.obj')))
 
     def makeCube(self):
         cube = Actor(self.renderer, self.environment, self.cubeMesh)
@@ -32,7 +33,7 @@ class ActorFactory:
         return edge
 
     def makeDataPoint(self):
-        dataPoint = Actor(self.renderer, self.environment, self.sphereMesh)
+        dataPoint = Actor(self.renderer, self.environment, self.pointMesh)
         return dataPoint
 
     def makeDragon(self):
