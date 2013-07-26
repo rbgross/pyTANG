@@ -19,7 +19,7 @@ class Environment:
         self.light = Light(self.renderer)
         
         self.actorFactory = ActorFactory(self.renderer, self)
-        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'DragonScene.txt')))
+        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'PerspectiveScene.txt')))
 
     def readData(self, fileName):
         self.actors = []
