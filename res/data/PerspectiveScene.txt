@@ -1,66 +1,78 @@
-Cube    Position	10.0 10.0 10.0	Color 0.8 0.4 0.0
-Cube    Position  	10.0 10.0 -10.0 Color 0.8 0.0 0.0
-Cube    Position  	10.0 -10.0 10.0 Color 0.3 0.0 0.8
-Cube    Position  	10.0 -10.0 -10.0  Color 0.8 0.8 0.0
-Cube    Position  	-10.0 10.0 10.0  Color 0.8 0.8 0.0
-Cube    Position  	-10.0 10.0 -10.0 Color 0.0 0.0 0.8
-Cube    Position  	-10.0 -10.0 10.0 Color 0.8 0.0 0.0
-Cube    Position  	-10.0 -10.0 -10.0  Color 0.8 0.4 0.0
-DataPoint	Position	-3.621 4.0 8.0 Color 0.8 0.8 0.8
-DataPoint	Position	3.843 4.0 7.6 Color 0.8 0.8 0.8
-DataPoint	Position	-6.503 4.0 7.2 Color 0.8 0.8 0.8
-DataPoint	Position	-7.078 4.0 6.8 Color 0.8 0.8 0.8
-DataPoint	Position	-0.393 4.0 6.4 Color 0.8 0.8 0.8
-DataPoint	Position	3.825 4.0 6.0 Color 0.8 0.8 0.8
-DataPoint	Position	6.394 4.0 5.6 Color 0.8 0.8 0.8
-DataPoint	Position	-3.517 4.0 5.2 Color 0.8 0.8 0.8
-DataPoint	Position	-3.436 4.0 4.8 Color 0.8 0.8 0.8
-DataPoint	Position	4.403 4.0 4.4 Color 0.8 0.8 0.8
-DataPoint	Position	-0.147 4.0 4.0 Color 0.8 0.8 0.8
-DataPoint	Position	5.545 4.0 3.6 Color 0.8 0.8 0.8
-DataPoint	Position	7.612 4.0 3.2 Color 0.8 0.8 0.8
-DataPoint	Position	7.953 4.0 2.8 Color 0.8 0.8 0.8
-DataPoint	Position	-3.650 4.0 2.4 Color 0.8 0.8 0.8
-DataPoint	Position	-5.801 4.0 2.0 Color 0.8 0.8 0.8
-DataPoint	Position	6.746 4.0 1.6 Color 0.8 0.8 0.8
-DataPoint	Position	-0.588 4.0 1.2 Color 0.8 0.8 0.8
-DataPoint	Position	5.255 4.0 0.8 Color 0.8 0.8 0.8
-DataPoint	Position	-5.448 4.0 0.4 Color 0.8 0.8 0.8
-DataPoint	Position	-1.972 4.0 0.0 Color 0.8 0.8 0.8
-DataPoint	Position	7.863 4.0 -0.4 Color 0.8 0.8 0.8
-DataPoint	Position	1.000 4.0 -0.8 Color 0.8 0.8 0.8
-DataPoint	Position	4.132 4.0 -1.2 Color 0.8 0.8 0.8
-DataPoint	Position	5.283 4.0 -1.6 Color 0.8 0.8 0.8
-DataPoint	Position	-7.881 4.0 -2.0 Color 0.8 0.8 0.8
-DataPoint	Position	-5.456 4.0 -2.4 Color 0.8 0.8 0.8
-DataPoint	Position	6.404 4.0 -2.8 Color 0.8 0.8 0.8
-DataPoint	Position	4.753 4.0 -3.2 Color 0.8 0.8 0.8
-DataPoint	Position	-4.224 4.0 -3.6 Color 0.8 0.8 0.8
-DataPoint	Position	5.447 4.0 -4.0 Color 0.8 0.8 0.8
-DataPoint	Position	-2.628 4.0 -4.4 Color 0.8 0.8 0.8
-DataPoint	Position	-3.806 4.0 -4.8 Color 0.8 0.8 0.8
-DataPoint	Position	7.430 4.0 -5.2 Color 0.8 0.8 0.8
-DataPoint	Position	2.210 4.0 -5.6 Color 0.8 0.8 0.8
-DataPoint	Position	6.663 4.0 -6.0 Color 0.8 0.8 0.8
-DataPoint	Position	7.304 4.0 -6.4 Color 0.8 0.8 0.8
-DataPoint	Position	-7.631 4.0 -6.8 Color 0.8 0.8 0.8
-DataPoint	Position	5.079 4.0 -7.2 Color 0.8 0.8 0.8
-DataPoint	Position	7.922 4.0 -7.6 Color 0.8 0.8 0.8
-DataPoint	Position	6.311 4.0 -8.0 Color 0.8 0.8 0.8
-DataPoint	Position	-5.772 4.695 7.939 Color 0.8 0.8 0.8
-DataPoint	Position	0.552 5.368 7.759 Color 0.8 0.8 0.8
-DataPoint	Position	2.950 6.000 7.464 Color 0.8 0.8 0.8
-DataPoint	Position	-5.926 6.571 7.064 Color 0.8 0.8 0.8
-DataPoint	Position	-2.229 7.064 6.571 Color 0.8 0.8 0.8
-DataPoint	Position	6.156 7.464 6.000 Color 0.8 0.8 0.8
-DataPoint	Position	6.799 7.759 5.368 Color 0.8 0.8 0.8
-DataPoint	Position	-1.458 7.939 4.695 Color 0.8 0.8 0.8
-DataPoint	Position	0.634 8.000 4.000 Color 0.8 0.8 0.8
-DataPoint	Position	-7.565 7.939 3.305 Color 0.8 0.8 0.8
-DataPoint	Position	4.175 7.759 2.632 Color 0.8 0.8 0.8
-DataPoint	Position	-1.097 7.464 2.000 Color 0.8 0.8 0.8
-DataPoint	Position	-2.419 7.064 1.429 Color 0.8 0.8 0.8
-DataPoint	Position	2.557 6.571 0.936 Color 0.8 0.8 0.8
-DataPoint	Position	0.585 6.000 0.536 Color 0.8 0.8 0.8
-DataPoint	Position	6.064 5.368 0.241 Color 0.8 0.8 0.8
-DataPoint	Position	4.854 4.695 0.061 Color 0.8 0.8 0.8
+Cube    Position	10.0 10.0 10.0	Rotation	0.0	0.0 0.0	Color 0.8 0.55 0.3
+Cube    Position  	10.0 10.0 -10.0 Rotation	0.0	0.0 0.0	Color 0.8 0.3 0.3
+Cube    Position  	10.0 -10.0 10.0 Rotation	0.0	0.0 0.0	Color 0.3 0.3 0.8
+Cube    Position  	10.0 -10.0 -10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.3
+Cube    Position  	-10.0 10.0 10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.3
+Cube    Position  	-10.0 10.0 -10.0 Rotation	0.0	0.0 0.0	Color 0.3 0.3 0.8
+Cube    Position  	-10.0 -10.0 10.0 Rotation	0.0	0.0 0.0	Color 0.8 0.3 0.3
+Cube    Position  	-10.0 -10.0 -10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.55 0.3
+Edge	Position	10.0 10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 -10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 -10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 0.0 10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 0.0 -10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 0.0 10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 0.0 -10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 10.0 10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 10.0 -10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 -10.0 10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 -10.0 -10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-3.621 4.0 8.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	3.843 4.0 7.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-6.503 4.0 7.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-7.078 4.0 6.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-0.393 4.0 6.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	3.825 4.0 6.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.394 4.0 5.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-3.517 4.0 5.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-3.436 4.0 4.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	4.403 4.0 4.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-0.147 4.0 4.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	5.545 4.0 3.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.612 4.0 3.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.953 4.0 2.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-3.650 4.0 2.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-5.801 4.0 2.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.746 4.0 1.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-0.588 4.0 1.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	5.255 4.0 0.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-5.448 4.0 0.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-1.972 4.0 0.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.863 4.0 -0.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	1.000 4.0 -0.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	4.132 4.0 -1.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	5.283 4.0 -1.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-7.881 4.0 -2.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-5.456 4.0 -2.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.404 4.0 -2.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	4.753 4.0 -3.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-4.224 4.0 -3.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	5.447 4.0 -4.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-2.628 4.0 -4.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-3.806 4.0 -4.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.430 4.0 -5.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	2.210 4.0 -5.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.663 4.0 -6.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.304 4.0 -6.4 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-7.631 4.0 -6.8 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	5.079 4.0 -7.2 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	7.922 4.0 -7.6 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.311 4.0 -8.0 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-5.772 4.695 7.939 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	0.552 5.368 7.759 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	2.950 6.000 7.464 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-5.926 6.571 7.064 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-2.229 7.064 6.571 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.156 7.464 6.000 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.799 7.759 5.368 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-1.458 7.939 4.695 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	0.634 8.000 4.000 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-7.565 7.939 3.305 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	4.175 7.759 2.632 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-1.097 7.464 2.000 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	-2.419 7.064 1.429 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	2.557 6.571 0.936 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	0.585 6.000 0.536 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	6.064 5.368 0.241 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8
+DataPoint	Position	4.854 4.695 0.061 Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.8

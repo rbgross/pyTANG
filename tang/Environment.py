@@ -19,7 +19,7 @@ class Environment:
         self.light = Light(self.renderer)
         
         self.actorFactory = ActorFactory(self.renderer, self)
-        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'PerspectiveScene.txt')))
+        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'DragonScene.txt')))
 
     def readData(self, fileName):
         self.actors = []
@@ -28,25 +28,17 @@ class Environment:
             s = line.split()
             if len(s) > 0:
                 if s[0] == 'Cube':
-                    cube = self.actorFactory.makeCube()
-                    cube.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
-                    cube.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
-                    self.actors.append(cube)
+                    temp = self.actorFactory.makeCube()
                 if s[0] == 'Edge':
-                    edge = self.actorFactory.makeEdge()
-                    edge.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
-                    edge.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
-                    self.actors.append(edge)                
+                    temp = self.actorFactory.makeEdge()                
                 if s[0] == 'DataPoint':
-                    dataPoint = self.actorFactory.makeDataPoint()
-                    dataPoint.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
-                    dataPoint.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
-                    self.actors.append(dataPoint)
+                    temp = self.actorFactory.makeDataPoint()
                 elif s[0] == 'Dragon':
-                    dragon = self.actorFactory.makeDragon()
-                    dragon.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
-                    dragon.color = np.array([s[6], s[7], s[8]], dtype = np.float32)
-                    self.actors.append(dragon)
+                    temp = self.actorFactory.makeDragon()
+                temp.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
+                temp.rotation = np.array([s[6], s[7], s[8]], dtype = np.float32)
+                temp.color = np.array([s[10], s[11], s[12]], dtype = np.float32)
+                self.actors.append(temp)
 
     def draw(self):
         if not self.hideCube:

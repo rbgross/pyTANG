@@ -1,10 +1,22 @@
-Cube    Position	10.0 10.0 10.0	Color 0.3 0.3 0.8
-Cube    Position  	10.0 10.0 -10.0 Color 0.8 0.3 0.3
-Cube    Position  	10.0 -10.0 10.0 Color 0.3 0.8 0.3
-Cube    Position  	10.0 -10.0 -10.0  Color 0.8 0.8 0.3
-Cube    Position  	-10.0 10.0 10.0  Color 0.8 0.8 0.3
-Cube    Position  	-10.0 10.0 -10.0 Color 0.3 0.8 0.3
-Cube    Position  	-10.0 -10.0 10.0 Color 0.8 0.3 0.3
-Cube    Position  	-10.0 -10.0 -10.0  Color 0.3 0.3 0.8
-Dragon	Position	0.0 0.0 0.0 Color 0.5 0.5 0.5
+Cube    Position	10.0 10.0 10.0	Rotation	0.0	0.0 0.0	Color 0.8 0.55 0.3
+Cube    Position  	10.0 10.0 -10.0 Rotation	0.0	0.0 0.0	Color 0.8 0.3 0.3
+Cube    Position  	10.0 -10.0 10.0 Rotation	0.0	0.0 0.0	Color 0.3 0.3 0.8
+Cube    Position  	10.0 -10.0 -10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.3
+Cube    Position  	-10.0 10.0 10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.8 0.3
+Cube    Position  	-10.0 10.0 -10.0 Rotation	0.0	0.0 0.0	Color 0.3 0.3 0.8
+Cube    Position  	-10.0 -10.0 10.0 Rotation	0.0	0.0 0.0	Color 0.8 0.3 0.3
+Cube    Position  	-10.0 -10.0 -10.0  Rotation	0.0	0.0 0.0	Color 0.8 0.55 0.3
+Edge	Position	10.0 10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 -10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 -10.0 0.0	Rotation	0.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 0.0 10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	10.0 0.0 -10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 0.0 10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	-10.0 0.0 -10.0	Rotation	90.0 0.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 10.0 10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 10.0 -10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 -10.0 10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Edge	Position	0.0 -10.0 -10.0	Rotation	0.0 90.0 0.0	Color 0.8 0.8 0.8
+Dragon	Position	0.0 0.0 0.0 Rotation	180.0	0.0 0.0 Color 0.5 0.5 0.5
 
