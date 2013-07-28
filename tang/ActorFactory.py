@@ -9,33 +9,40 @@ import numpy as np
 import hommat as hm
 
 from Actor import Actor
-from Mesh import Mesh
+from Mesh import Mesh, EmptyMesh
 
 class ActorFactory:
     def __init__(self, renderer, environment):
         self.renderer = renderer
         self.environment = environment
-        self.loadResources()        
+        self.meshes = dict()  # to cache meshes for reuse (TODO: move this cache to Mesh, as a static variable)
+        self.loadResources()
 
     def loadResources(self):
-        self.cubeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Cube.obj')))
-        self.edgeMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'CubeEdge.obj')))
-        self.sphereMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'SmallSphere.obj')))
-        self.dragonMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'Dragon.obj')))
-        self.pointMesh = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', 'TinySphere.obj')))
+        self.meshes['Empty'] = EmptyMesh()  # special empty mesh to be used as a placeholder, and for empty actors
+        for filename in ['Cube.obj', 'CubeEdge.obj', 'SmallSphere.obj', 'Dragon.obj', 'TinySphere.obj']:
+            self.getMesh(filename)  # ensures this mesh is loaded
+
+    def getMesh(self, filename):
+        if not filename in self.meshes:
+            self.meshes[filename] = Mesh(os.path.abspath(os.path.join(self.renderer.resPath, 'models', filename)))
+        return self.meshes[filename]
+
+    def makeEmpty(self):
+        return Actor(self.renderer, self.environment, self.meshes['Empty'])
 
     def makeCube(self):
-        cube = Actor(self.renderer, self.environment, self.cubeMesh)
+        cube = Actor(self.renderer, self.environment, self.meshes['Cube.obj'])
         return cube
 
     def makeEdge(self):
-        edge = Actor(self.renderer, self.environment, self.edgeMesh)
+        edge = Actor(self.renderer, self.environment, self.meshes['CubeEdge.obj'])
         return edge
 
     def makeDataPoint(self):
-        dataPoint = Actor(self.renderer, self.environment, self.pointMesh)
+        dataPoint = Actor(self.renderer, self.environment, self.meshes['SmallSphere.obj'])
         return dataPoint
 
     def makeDragon(self):
-        dragon = Actor(self.renderer, self.environment, self.dragonMesh)
+        dragon = Actor(self.renderer, self.environment, self.meshes['Dragon.obj'])
         return dragon

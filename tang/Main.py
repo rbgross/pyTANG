@@ -34,7 +34,8 @@ if haveCV:
 # NOTE: glBlitFramebuffer() doesn't play well if source and destination sizes are different, so keep these same
 windowWidth, windowHeight = (640, 480)
 cameraWidth, cameraHeight = (640, 480)
-
+gui = False
+debug = False
 
 def usage():
     print "Usage: {} [<resource_path> [<camera_device> | <video_filename>]]".format(sys.argv[0])
@@ -53,17 +54,27 @@ def main():
     # TODO Start using optparse/argparse instead of positional arguments
     resPath = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join("..", "res"))  # NOTE only absolute path seems to work properly
     #print "main(): Resource path:", resPath  # only needed if logging is not working
+    gui = '--gui' in sys.argv
+    debug = '--debug' in sys.argv
     
-    # * Setup logging
+    # * Setup logging (before any other object is initialized that obtains a logger)
+    # ** Load configuration from file
     logConfigFile = os.path.abspath(os.path.join(resPath, "config", "logging.conf"))  # TODO make log config filename an optional argument
     os.chdir(os.path.dirname(logConfigFile))  # change to log config file's directory (it contains relative paths)
     logging.config.fileConfig(logConfigFile)  # load configuration
     os.chdir(sys.path[0])  # change back to current script's directory
+    # ** Tweak root logger configuration based on command-line arguments
+    if debug and logging.getLogger().getEffectiveLevel() > logging.DEBUG:
+      logging.getLogger().setLevel(logging.DEBUG)
+    elif not debug and logging.getLogger().getEffectiveLevel() <= logging.DEBUG:
+      logging.getLogger().setLevel(logging.INFO)  # one level above DEBUG
+      # NOTE Logging level order: DEBUG < INFO < WARN < ERROR < CRITICAL
+    # ** Obtain a logger for this module
     logger = logging.getLogger(__name__)
     #logger.debug("Logging system ready")  # Example: Log a debug message
     #logger.log(INFO, "Resource path: %s", resPath)  # Example: Log a message with a specified level (INFO) and formatted args.
     if not haveCV:
-        logger.warn("OpenCV library not available")  # Example: Log a warning message (will be stored in log file)
+      logger.warn("OpenCV library not available")  # Example: Log a warning message (will be stored in log file)
     
     # * Obtain camera device no. / input video filename
     cameraDevice = 0  # NOTE A default video filename can be specified here, but isVideo must also be set to true then
@@ -82,9 +93,9 @@ def main():
     
     # * Open camera/video file and start vision loop, if OpenCV is available
     if haveCV:
-        logger.debug("Camera device / video input file: {}".format(cameraDevice))
+        logger.info("Camera device / video input file: {}".format(cameraDevice))
         camera = cv2.VideoCapture(cameraDevice)
-        options={ 'gui': '--gui' in sys.argv, 'debug': '--debug' in sys.argv,
+        options={ 'gui': gui, 'debug': debug,
                   'isVideo': isVideo, 'loopVideo': True,
                   'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                   'windowWidth': windowWidth, 'windowHeight': windowHeight }
@@ -96,7 +107,7 @@ def main():
         imageBlitter.initialize(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
         
         def visionLoop():
-            logger.debug("[Vision loop] Starting...")
+            logger.info("[Vision loop] Starting...")
             while renderer.windowOpen():
                 if videoInput.read():
                   colorTracker.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
@@ -105,7 +116,7 @@ def main():
                   # Rotate and translate model to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
                   environment.model[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
                   environment.model[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
-            logger.debug("[Vision loop] Done.")
+            logger.info("[Vision loop] Done.")
         
         visionThread = Thread(target=visionLoop)
         visionThread.start()
@@ -120,9 +131,9 @@ def main():
     
     # * Clean up
     if haveCV:
-        logger.debug("Waiting on vision thread to finish...")
+        logger.info("Waiting on vision thread to finish...")
         visionThread.join()
-        logger.debug("Cleaning up...")
+        logger.info("Cleaning up...")
         camera.release()
 
 

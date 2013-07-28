@@ -7,9 +7,11 @@ from ctypes import *
 import sys
 import numpy as np
 import hommat as hm
+import xml.etree.ElementTree as ET
 
 from Light import Light
 from ActorFactory import ActorFactory
+from Mesh import Mesh
 
 class Environment:
     def __init__(self, renderer):
@@ -19,10 +21,11 @@ class Environment:
         self.light = Light(self.renderer)
         
         self.actorFactory = ActorFactory(self.renderer, self)
-        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'PerspectiveScene.txt')))
-
-    def readData(self, fileName):
         self.actors = []
+        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'PerspectiveScene.txt')))
+        self.readXML(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'default-scene.xml')))
+    
+    def readData(self, fileName):
         f = open(fileName, 'r')
         for line in f: 
             s = line.split()
@@ -39,11 +42,52 @@ class Environment:
                 temp.rotation = np.array([s[6], s[7], s[8]], dtype = np.float32)
                 temp.color = np.array([s[10], s[11], s[12]], dtype = np.float32)
                 self.actors.append(temp)
-
+    
+    def readXML(self, filename):
+        xmlTree = ET.parse(filename)
+        rootNode = xmlTree.getroot()
+        print "Environment.readXML(): XML Tree:-"
+        ET.dump(rootNode)
+        #self.printXMLNode(rootNode)  # recursively prints this node and all children
+        
+        if rootNode.tag == 'Actor':
+            self.rootActor = self.loadActorFromXMLNode(rootNode)
+            print "\nEnvironment.readXML(): Loaded actor hierarchy:-"
+            print self.rootActor
+            self.actors.append(self.rootActor)  # include in scene hierarchy
+    
+    def loadActorFromXMLNode(self, xmlNode):
+        # Initialize empty actor object
+        actor = self.actorFactory.makeEmpty()
+        
+        # Load actor's components
+        components = xmlNode.find('components')
+        for component in components:
+            if component.tag == 'Mesh':
+                actor.mesh = self.actorFactory.getMesh(component.attrib['src'])  # NOTE src is a required attribute of Mesh
+            elif component.tag == 'Transform':
+                actor.position = np.float32(eval(component.find('position').text))  # NOTE this use of eval() is unsafe
+                actor.rotation = np.float32(eval(component.find('rotation').text))  # NOTE this use of eval() is unsafe
+                actor.scale = np.float32(eval(component.find('scale').text))  # NOTE this use of eval() is unsafe
+            elif component.tag == 'Material':
+                actor.color = np.float32(eval(component.find('color').text))  # NOTE this use of eval() is unsafe
+        
+        # Recursively load child actors
+        for child in xmlNode.find('children'):
+            if child.tag == 'Actor':
+                actor.children.append(self.loadActorFromXMLNode(child))
+        
+        return actor
+    
+    def printXMLNode(self, xmlNode, indent=""):
+        print indent, xmlNode.tag, xmlNode.attrib
+        for childNode in xmlNode:
+            self.printXMLNode(childNode, indent + "  ")
+    
     def draw(self):
         if not self.hideCube:
             for i in xrange(0, 8):
                 self.actors[i].draw()
-
+        
         for i in xrange(8, len(self.actors)):
             self.actors[i].draw()

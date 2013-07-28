@@ -9,11 +9,14 @@ import numpy as np
 import hommat as hm
 
 class Mesh:
-    def __init__(self, fileName):
+    def __init__(self, filename):
+        # TODO Include a mesh name (e.g. 'Dragon') as ID and a filepath (e.g. '../res/models/Dragon.obj')
+        # TODO Load directly from XML node object, e.g. fromXML(), toXML()
+        self.filename = filename
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
 
-        self.loadModel(fileName)
+        self.loadModel(self.filename)
 
         self.vbo = VBO(self.meshData, GL_STATIC_DRAW)
         self.vbo.bind()
@@ -28,12 +31,8 @@ class Mesh:
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, self.ebo)
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, len(self.elements)*4, self.elements, GL_STATIC_DRAW)
 
-    def draw(self):
-        glBindVertexArray(self.vao)
-        glDrawElements(GL_TRIANGLES, self.elements.size, GL_UNSIGNED_INT, None )
-
-    def loadModel(self, fileName):
-        f = open(fileName, 'r')
+    def loadModel(self, filename):
+        f = open(filename, 'r')
         self.meshData = []
         self.elements = []
         vertices = []
@@ -65,5 +64,23 @@ class Mesh:
 
         self.meshData = np.array(self.meshData, dtype = np.float32)
         self.elements = np.array(self.elements, dtype = np.uint32)
-                
-        
+
+    def draw(self):
+        glBindVertexArray(self.vao)
+        glDrawElements(GL_TRIANGLES, self.elements.size, GL_UNSIGNED_INT, None)
+    
+    def __str__(self):
+        return "Mesh: { src: \"" + self.filename + "\" }"
+
+
+class EmptyMesh:
+    """Special mesh class to use for empty actors."""
+    
+    def __init__(self, filename=None):
+        pass
+    
+    def draw(self):
+        pass
+    
+    def __str__(self):
+        return "Mesh: { src: \"\" }"
