@@ -12,6 +12,8 @@ import xml.etree.ElementTree as ET
 from Light import Light
 from ActorFactory import ActorFactory
 from Mesh import Mesh
+from Transform import Transform
+from Material import Material
 
 class Environment:
     def __init__(self, renderer):
@@ -31,17 +33,17 @@ class Environment:
             s = line.split()
             if len(s) > 0:
                 if s[0] == 'Cube':
-                    temp = self.actorFactory.makeCube()
+                    actor = self.actorFactory.makeCube()
                 if s[0] == 'Edge':
-                    temp = self.actorFactory.makeEdge()                
+                    actor = self.actorFactory.makeEdge()
                 if s[0] == 'DataPoint':
-                    temp = self.actorFactory.makeDataPoint()
+                    actor = self.actorFactory.makeDataPoint()
                 elif s[0] == 'Dragon':
-                    temp = self.actorFactory.makeDragon()
-                temp.position = np.array([s[2], s[3], s[4]], dtype = np.float32)
-                temp.rotation = np.array([s[6], s[7], s[8]], dtype = np.float32)
-                temp.color = np.array([s[10], s[11], s[12]], dtype = np.float32)
-                self.actors.append(temp)
+                    actor = self.actorFactory.makeDragon()
+                actor.components['Transform'].position = np.array([s[2], s[3], s[4]], dtype = np.float32)
+                actor.components['Transform'].rotation = np.array([s[6], s[7], s[8]], dtype = np.float32)
+                actor.components['Material'].color = np.array([s[10], s[11], s[12]], dtype = np.float32)
+                self.actors.append(actor)
     
     def readXML(self, filename):
         xmlTree = ET.parse(filename)
@@ -64,13 +66,12 @@ class Environment:
         components = xmlNode.find('components')
         for component in components:
             if component.tag == 'Mesh':
-                actor.mesh = self.actorFactory.getMesh(component.attrib['src'])  # NOTE src is a required attribute of Mesh
+                # NOTE src is a required attribute of Mesh elements
+                actor.components['Mesh'] = Mesh.fromXMLElement(component)  # NOTE Meshes are currently shared, therefore not linked to individual actors
             elif component.tag == 'Transform':
-                actor.position = np.float32(eval(component.find('position').text))  # NOTE this use of eval() is unsafe
-                actor.rotation = np.float32(eval(component.find('rotation').text))  # NOTE this use of eval() is unsafe
-                actor.scale = np.float32(eval(component.find('scale').text))  # NOTE this use of eval() is unsafe
+                actor.components['Transform'] = Transform.fromXMLElement(component, actor)
             elif component.tag == 'Material':
-                actor.color = np.float32(eval(component.find('color').text))  # NOTE this use of eval() is unsafe
+                actor.components['Material'] = Material.fromXMLElement(component, actor)
         
         # Recursively load child actors
         for child in xmlNode.find('children'):

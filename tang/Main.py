@@ -25,6 +25,7 @@ except ImportError:
 from Renderer import Renderer
 from Environment import Environment
 from Controller import Controller
+from Mesh import Mesh
 if haveCV:
     from vision.input import VideoInput
     from vision.gl import FrameProcessorGL
@@ -87,6 +88,7 @@ def main():
             isVideo = True
     
     # * Initialize GL rendering context and associated objects
+    Mesh.configure(resPath)
     renderer = Renderer(resPath)
     environment = Environment(renderer)
     controller = Controller(environment)

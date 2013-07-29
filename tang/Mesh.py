@@ -8,15 +8,42 @@ import sys
 import numpy as np
 import hommat as hm
 
-class Mesh:
-    def __init__(self, filename):
-        # TODO Include a mesh name (e.g. 'Dragon') as ID and a filepath (e.g. '../res/models/Dragon.obj')
-        # TODO Load directly from XML node object, e.g. fromXML(), toXML()
-        self.filename = filename
+from Component import Component
+
+class Mesh(Component):
+    resPath = ""
+    meshes = dict()  # to cache meshes for reuse
+    
+    @classmethod
+    def configure(cls, resPath):
+        cls.resPath = resPath
+        cls.meshes['Empty'] = EmptyMesh()  # special empty mesh to be used as a placeholder, and for empty actors
+    
+    @classmethod
+    def fromXMLElement(cls, xmlElement, actor=None):
+        try:
+            return cls.getMesh(xmlElement.attrib['src'], actor)
+        except KeyError as e:
+            print "Mesh.fromXMLElement(): Error: Required attribute not found in XML element:", e
+            return None
+    
+    @classmethod
+    def getMesh(cls, src, actor=None):
+        if not src in cls.meshes:
+            cls.meshes[src] = Mesh(src, actor)
+        return cls.meshes[src]
+    
+    def __init__(self, src, actor=None):
+        Component.__init__(self, actor)
+
+        # TODO Include a mesh name (e.g. 'Dragon') as ID as well as src (e.g. '../res/models/Dragon.obj')
+        self.src = src
+        self.filepath = os.path.abspath(os.path.join(Mesh.resPath, 'models', src))  # NOTE Mesh.configure() must be called prior to this to set resPath
+        
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
 
-        self.loadModel(self.filename)
+        self.loadModel(self.filepath)
 
         self.vbo = VBO(self.meshData, GL_STATIC_DRAW)
         self.vbo.bind()
@@ -69,8 +96,12 @@ class Mesh:
         glBindVertexArray(self.vao)
         glDrawElements(GL_TRIANGLES, self.elements.size, GL_UNSIGNED_INT, None)
     
+    def toXMLElement(self):
+        xmlElement = Component.toXMLElement(self)
+        xmlElement.attrib['src'] = self.src
+    
     def __str__(self):
-        return "Mesh: { src: \"" + self.filename + "\" }"
+        return "Mesh: { src: \"" + self.src + "\" }"
 
 
 class EmptyMesh:
