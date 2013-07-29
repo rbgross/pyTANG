@@ -25,7 +25,7 @@ except ImportError:
 from Renderer import Renderer
 from Environment import Environment
 from Controller import Controller
-from Mesh import Mesh
+from component.Mesh import Mesh
 if haveCV:
     from vision.input import VideoInput
     from vision.gl import FrameProcessorGL

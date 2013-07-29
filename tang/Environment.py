@@ -11,9 +11,9 @@ import xml.etree.ElementTree as ET
 
 from Light import Light
 from ActorFactory import ActorFactory
-from Mesh import Mesh
-from Transform import Transform
-from Material import Material
+from component.Mesh import Mesh
+from component.Transform import Transform
+from component.Material import Material
 
 class Environment:
     def __init__(self, renderer):

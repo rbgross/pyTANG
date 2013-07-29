@@ -9,9 +9,9 @@ import numpy as np
 import hommat as hm
 
 from Actor import Actor
-from Mesh import Mesh
-from Transform import Transform
-from Material import Material
+from component.Mesh import Mesh
+from component.Transform import Transform
+from component.Material import Material
 
 class ActorFactory:
     def __init__(self, renderer, environment):
