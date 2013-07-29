@@ -9,18 +9,19 @@ import math
 import numpy as np
 import hommat as hm
 
+from Context import Context
 from Shader import Shader
 
 class Renderer:
-    def __init__(self, resPath=None):
-        self.resPath = resPath if resPath is not None else os.getcwd()  # default to current directory if None passed
+    def __init__(self):
+        self.context = Context.getInstance()  # NOTE must be initialized
         
         self.windowWidth = 640
         self.windowHeight = 480
 
         self.initialize()
 
-        self.colorShader = Shader(os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.vert')), os.path.abspath(os.path.join(self.resPath, 'shaders', 'ADS.frag')))
+        self.colorShader = Shader(self.context.getResourcePath('shaders', 'ADS.vert'), self.context.getResourcePath('shaders', 'ADS.frag'))
 
         self.cameraMatrix = np.dot(hm.perspective(hm.identity(), 35, float(self.windowWidth) / self.windowHeight, 1.0, 1000.0), hm.lookat(hm.identity(), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 1.0, 1.0], dtype = np.float32), np.array([0.0, -1.0, 0.0, 1.0], dtype = np.float32)))
         self.setCameraMatrix(self.cameraMatrix)

@@ -8,16 +8,11 @@ import sys
 import numpy as np
 import hommat as hm
 
+from Context import Context
 from Component import Component
 
 class Mesh(Component):
-    resPath = ""
-    meshes = dict()  # to cache meshes for reuse
-    
-    @classmethod
-    def configure(cls, resPath):
-        cls.resPath = resPath
-        cls.meshes['Empty'] = EmptyMesh()  # special empty mesh to be used as a placeholder, and for empty actors
+    meshes = dict()  # cache to reuse meshes
     
     @classmethod
     def fromXMLElement(cls, xmlElement, actor=None):
@@ -30,7 +25,10 @@ class Mesh(Component):
     @classmethod
     def getMesh(cls, src, actor=None):
         if not src in cls.meshes:
-            cls.meshes[src] = Mesh(src, actor)
+            if src == 'Empty':
+                cls.meshes[src] = EmptyMesh()  # special empty mesh to be used as a placeholder, and for empty actors
+            else:
+                cls.meshes[src] = Mesh(src, actor)
         return cls.meshes[src]
     
     def __init__(self, src, actor=None):
@@ -38,7 +36,7 @@ class Mesh(Component):
 
         # TODO Include a mesh name (e.g. 'Dragon') as ID as well as src (e.g. '../res/models/Dragon.obj')
         self.src = src
-        self.filepath = os.path.abspath(os.path.join(Mesh.resPath, 'models', src))  # NOTE Mesh.configure() must be called prior to this to set resPath
+        self.filepath = Context.getInstance().getResourcePath('models', src)
         
         self.vao = glGenVertexArrays(1)
         glBindVertexArray(self.vao)
@@ -92,7 +90,7 @@ class Mesh(Component):
         self.meshData = np.array(self.meshData, dtype = np.float32)
         self.elements = np.array(self.elements, dtype = np.uint32)
 
-    def draw(self):
+    def render(self):
         glBindVertexArray(self.vao)
         glDrawElements(GL_TRIANGLES, self.elements.size, GL_UNSIGNED_INT, None)
     
@@ -102,16 +100,3 @@ class Mesh(Component):
     
     def __str__(self):
         return "Mesh: { src: \"" + self.src + "\" }"
-
-
-class EmptyMesh:
-    """Special mesh class to use for empty actors."""
-    
-    def __init__(self, filename=None):
-        pass
-    
-    def draw(self):
-        pass
-    
-    def __str__(self):
-        return "Mesh: { src: \"\" }"

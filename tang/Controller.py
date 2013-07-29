@@ -10,9 +10,12 @@ import time
 import numpy as np
 import hommat as hm
 
+from Context import Context
+
 class Controller:
-    def __init__(self, environment):
-        self.environment = environment
+    def __init__(self):
+        self.context = Context.getInstance()  # NOTE must contain environment
+        
         self.timer = time.clock()
         
         #self.wheelPosition = glfw.GetMouseWheel()
@@ -33,26 +36,26 @@ class Controller:
             #self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
         if glfw.GetKey('A'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 1, 0]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 1, 0]), self.context.environment.model)
 
         if glfw.GetKey('D'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 1, 0]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 1, 0]), self.context.environment.model)
 
         if glfw.GetKey('W'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [1, 0, 0]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [1, 0, 0]), self.context.environment.model)
 
         if glfw.GetKey('S'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [1, 0, 0]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [1, 0, 0]), self.context.environment.model)
 
         if glfw.GetKey('Q'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.context.environment.model)
 
         if glfw.GetKey('E'):
-            self.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 0, 1]), self.environment.model)
+            self.context.environment.model = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 0, 1]), self.context.environment.model)
         
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
-            self.environment.hideCube = not self.environment.hideCube
+            self.context.environment.hideCube = not self.context.environment.hideCube
 
         if not glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = False
@@ -73,9 +76,9 @@ class Controller:
                 #curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY)
                 #angle = math.acos(min(1.0, np.dot(oldVec, curVec)))
                 #cameraAxis = np.cross(oldVec, curVec)
-                #cameraToObjectCoords = np.linalg.inv(np.dot(self.view[:-1,:-1], self.environment.model[:-1,:-1]))
+                #cameraToObjectCoords = np.linalg.inv(np.dot(self.view[:-1,:-1], self.context.environment.model[:-1,:-1]))
                 #cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis)
-                #self.environment.model = hm.rotation(self.environment.model, math.degrees(angle), cameraAxisObjectCoords)
+                #self.context.environment.model = hm.rotation(self.context.environment.model, math.degrees(angle), cameraAxisObjectCoords)
                 #self.oldMouseX = self.curMouseX
                 #self.oldMouseY = self.curMouseY
 

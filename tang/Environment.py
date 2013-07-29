@@ -9,23 +9,23 @@ import numpy as np
 import hommat as hm
 import xml.etree.ElementTree as ET
 
+from Context import Context
 from Light import Light
+from Actor import Actor
 from ActorFactory import ActorFactory
-from component.Mesh import Mesh
-from component.Transform import Transform
-from component.Material import Material
 
 class Environment:
-    def __init__(self, renderer):
-        self.hideCube = False
-        self.renderer = renderer
-        self.model = hm.identity()
-        self.light = Light(self.renderer)
+    def __init__(self):
+        self.context = Context.getInstance()  # NOTE must contain renderer
         
-        self.actorFactory = ActorFactory(self.renderer, self)
+        self.hideCube = False
+        self.model = hm.identity()
+        self.light = Light(self.context.renderer)
+        
+        self.actorFactory = ActorFactory(self.context.renderer, self)
         self.actors = []
-        self.readData(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'PerspectiveScene.txt')))
-        self.readXML(os.path.abspath(os.path.join(self.renderer.resPath, 'data', 'default-scene.xml')))
+        self.readData(self.context.getResourcePath('data', 'PerspectiveScene.txt'))
+        self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
     
     def readData(self, fileName):
         f = open(fileName, 'r')
@@ -47,43 +47,21 @@ class Environment:
     
     def readXML(self, filename):
         xmlTree = ET.parse(filename)
-        rootNode = xmlTree.getroot()
+        rootElement = xmlTree.getroot()
         print "Environment.readXML(): XML Tree:-"
-        ET.dump(rootNode)
-        #self.printXMLNode(rootNode)  # recursively prints this node and all children
+        ET.dump(rootElement)
+        #self.printXMLElement(rootElement)  # recursively prints this element and all children
         
-        if rootNode.tag == 'Actor':
-            self.rootActor = self.loadActorFromXMLNode(rootNode)
+        if rootElement.tag == 'Actor':
+            self.rootActor = Actor.fromXMLElement(rootElement, self.actorFactory)
             print "\nEnvironment.readXML(): Loaded actor hierarchy:-"
             print self.rootActor
             self.actors.append(self.rootActor)  # include in scene hierarchy
     
-    def loadActorFromXMLNode(self, xmlNode):
-        # Initialize empty actor object
-        actor = self.actorFactory.makeEmpty()
-        
-        # Load actor's components
-        components = xmlNode.find('components')
-        for component in components:
-            if component.tag == 'Mesh':
-                # NOTE src is a required attribute of Mesh elements
-                actor.components['Mesh'] = Mesh.fromXMLElement(component)  # NOTE Meshes are currently shared, therefore not linked to individual actors
-            elif component.tag == 'Transform':
-                actor.components['Transform'] = Transform.fromXMLElement(component, actor)
-            elif component.tag == 'Material':
-                actor.components['Material'] = Material.fromXMLElement(component, actor)
-        
-        # Recursively load child actors
-        for child in xmlNode.find('children'):
-            if child.tag == 'Actor':
-                actor.children.append(self.loadActorFromXMLNode(child))
-        
-        return actor
-    
-    def printXMLNode(self, xmlNode, indent=""):
-        print indent, xmlNode.tag, xmlNode.attrib
-        for childNode in xmlNode:
-            self.printXMLNode(childNode, indent + "  ")
+    def printXMLElement(self, xmlElement, indent=""):
+        print indent, xmlElement.tag, xmlElement.attrib
+        for subElement in xmlElement:
+            self.printXMLElement(subElement, indent + "  ")
     
     def draw(self):
         if not self.hideCube:
