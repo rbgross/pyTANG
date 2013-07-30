@@ -35,3 +35,6 @@ class Transform(Component):
              "  rotation: " + str(self.rotation) + ",\n" + \
              "  scale: " + str(self.scale) + "\n" + \
              "}"
+
+# Register component type for automatic delegation (e.g. when inflating from XML)
+Component.registerType(Transform)

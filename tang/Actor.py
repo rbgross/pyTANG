@@ -9,9 +9,7 @@ import numpy as np
 import hommat as hm
 import xml.etree.ElementTree as ET
 
-from component.Mesh import Mesh
-from component.Transform import Transform
-from component.Material import Material
+from component.Component import Component
 
 class Actor:
   @classmethod
@@ -19,18 +17,14 @@ class Actor:
     # Initialize empty actor object
     actor = actorFactory.makeEmpty()
     
-    # TODO Extract common element attributes such as id
+    # TODO Extract common element attributes such as id, type?
     
     # Load actor's components
     components = xmlElement.find('components')
     for component in components:
-      if component.tag == 'Mesh':
-        # NOTE src is a required attribute of Mesh elements
-        actor.components['Mesh'] = Mesh.fromXMLElement(component)  # NOTE Meshes are currently shared, therefore not linked to individual actors
-      elif component.tag == 'Transform':
-        actor.components['Transform'] = Transform.fromXMLElement(component, actor)
-      elif component.tag == 'Material':
-        actor.components['Material'] = Material.fromXMLElement(component, actor)
+      componentObj = Component.fromXMLElement(component, actor)
+      if componentObj is not None:
+        actor.components[componentObj.__class__.__name__] = componentObj
     
     # Recursively load child actors
     for child in xmlElement.find('children'):
@@ -39,9 +33,9 @@ class Actor:
     
     return actor
   
-  def __init__(self, renderer, environment):
-    self.renderer = renderer  # TODO make renderer a component (?) and remove dependency on environment
-    self.environment = environment
+  def __init__(self, renderer, scene):
+    self.renderer = renderer  # TODO make renderer a component (?) and remove dependency on scene
+    self.scene = scene
     
     # Dictionary to store all components by name
     self.components = dict()
@@ -54,7 +48,7 @@ class Actor:
     #   e.g.:- for component in self.components: component.apply()
     #   But how do we ensure order is maintained? (Mesh must be rendered after Transform and Material have been applied)
     try:
-      model = hm.translation(self.environment.model, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
+      model = hm.translation(self.scene.model, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
       model = hm.rotation(model, self.components['Transform'].rotation[0], [1, 0, 0])
       model = hm.rotation(model, self.components['Transform'].rotation[1], [0, 1, 0])
       model = hm.rotation(model, self.components['Transform'].rotation[2], [0, 0, 1])
@@ -62,7 +56,7 @@ class Actor:
       self.renderer.setModel(model)
     except KeyError:
       # No Transform component present, use global transform?
-      self.renderer.setModel(environment.model)
+      self.renderer.setModel(scene.model)
     
     try:
       self.renderer.setDiffCol(self.components['Material'].color)
@@ -104,8 +98,9 @@ class Actor:
       out += indent + "    }\n"
     out += indent + "  },\n"
     out += indent + "  children: {\n"
-    for child in self.children:
-        out += child.toString(indent + "    ")
+    if self.children:
+      out += ",\n".join(child.toString(indent + "    ") for child in self.children)
+      out += "\n"
     out += indent + "  }\n"
     out += indent + "}"
     

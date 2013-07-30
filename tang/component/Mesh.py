@@ -25,7 +25,7 @@ class Mesh(Component):
             if src == 'Empty':
                 cls.meshes[src] = EmptyMesh()  # special empty mesh to be used as a placeholder, and for empty actors
             else:
-                cls.meshes[src] = Mesh(src, actor)
+                cls.meshes[src] = Mesh(src)  # NOTE Meshes are currently shared, therefore not linked to individual actors
         return cls.meshes[src]
     
     def __init__(self, src, actor=None):
@@ -98,3 +98,6 @@ class Mesh(Component):
     
     def __str__(self):
         return "Mesh: { src: \"" + self.src + "\" }"
+
+# Register component type for automatic delegation (e.g. when inflating from XML)
+Component.registerType(Mesh)

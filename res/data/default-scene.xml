@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <scene>
-  <Actor type="Empty" id="root">
+  <Actor>
     <components>
       <Transform translation="0.0 0.0 0.0" rotation="0.0 0.0 0.0" scale="1.0 1.0 1.0"/>
     </components>
     <children>
-      <Actor type="Empty">
+      <Actor>
         <components>
           <Transform translation="0.0 0.0 0.0" rotation="0.0 0.0 0.0" scale="1.0 1.0 1.0"/>
         </components>
         <children>
-          <Actor type="DataPoint">
+          <Actor>
             <components>
               <Mesh src="Dragon.obj" />
               <Transform translation="0.0 0.0 0.0" rotation="180.0 0.0 0.0" scale="1.0 1.0 1.0"/>

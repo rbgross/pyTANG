@@ -14,7 +14,7 @@ from Light import Light
 from Actor import Actor
 from ActorFactory import ActorFactory
 
-class Environment:
+class Scene:
     def __init__(self):
         self.context = Context.getInstance()  # NOTE must contain renderer
         
@@ -28,12 +28,12 @@ class Environment:
         #self.writeXML(filename + '.xml')  # enable this to convert a .txt scene file to XML (NOTE will write to file in <resources>/data/!)
         self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
         self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
-        print "Environment.__init__(): Loaded {} top-level actor(s)".format(len(self.actors))
+        print "Scene.__init__(): Loaded {} top-level actor(s)".format(len(self.actors))
         #for actor in self.actors:
         #    print actor
     
     def readData(self, filename):
-        print "Environment.readData(): Parsing file:", filename
+        print "Scene.readData(): Parsing file:", filename
         f = open(filename, 'r')
         for line in f: 
             s = line.split()
@@ -52,10 +52,10 @@ class Environment:
                 self.actors.append(actor)
     
     def readXML(self, filename):
-        print "Environment.readXML(): Parsing file:", filename
+        print "Scene.readXML(): Parsing file:", filename
         xmlTree = ET.parse(filename)
         rootElement = xmlTree.getroot()
-        #print "Environment.readXML(): Source XML tree:-"
+        #print "Scene.readXML(): Source XML tree:-"
         #ET.dump(rootElement)
         
         # Root element must be a <scene>, containing one or more <Actor> elements
@@ -66,7 +66,7 @@ class Environment:
                     actor = Actor.fromXMLElement(subElement, self.actorFactory)
                     self.actors.append(actor)  # include in scene hierarchy
         else:
-            print "Environment.readXML(): Bad XML: Root must be a <scene> element"
+            print "Scene.readXML(): Bad XML: Root must be a <scene> element"
     
     def writeXML(self, filename):
         xmlTree = ET.ElementTree(ET.Element('scene'))
@@ -74,7 +74,7 @@ class Environment:
         for actor in self.actors:
             rootElement.append(actor.toXMLElement())
         xmlTree.write(open(self.context.getResourcePath('data', filename), 'w'))
-        print "Environment.writeXML(): Written to file:", filename
+        print "Scene.writeXML(): Written to file:", filename
     
     def draw(self):
         if not self.hideCube:

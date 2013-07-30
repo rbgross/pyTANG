@@ -24,7 +24,7 @@ except ImportError:
 # Custom imports
 from Context import Context
 from Renderer import Renderer
-from Environment import Environment
+from Scene import Scene
 from Controller import Controller
 from component.Mesh import Mesh
 if haveCV:
@@ -53,9 +53,9 @@ class Main:
     if not haveCV:
       self.logger.warn("OpenCV library not available")
     
-    # * Initialize GL rendering context and associated objects
+    # * Initialize GL rendering context and associated objects (NOTE order of initialization may be important)
     self.context.renderer = Renderer()
-    self.context.environment = Environment()
+    self.context.scene = Scene()
     self.context.controller = Controller()
   
   def run(self):
@@ -82,8 +82,8 @@ class Main:
             imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
             
             # Rotate and translate model to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
-            self.context.environment.model[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
-            self.context.environment.model[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
+            self.context.scene.model[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
+            self.context.scene.model[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
         self.logger.info("[Vision loop] Done.")
       
       visionThread = Thread(target=visionLoop)
@@ -94,7 +94,7 @@ class Main:
       self.context.controller.pollInput()
       self.context.renderer.startDraw()
       imageBlitter.render()
-      self.context.environment.draw()
+      self.context.scene.draw()
       self.context.renderer.endDraw()
     
     # * Clean up

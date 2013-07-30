@@ -22,3 +22,6 @@ class Material(Component):
   
   def __str__(self):
       return "Material: { color: " + str(self.color) + "}"
+
+# Register component type for automatic delegation (e.g. when inflating from XML)
+Component.registerType(Material)

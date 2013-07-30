@@ -2,14 +2,27 @@ import xml.etree.ElementTree as ET
 
 class Component:
   """Base class for all Actor components."""
+  componentTypes = dict()
+  
+  @classmethod
+  def registerType(cls, type):
+    """Register a Component class for automatic delegation (no subclass lookup - explicit is better than implicit!)."""
+    # NOTE Subclasses must be registered via this method in order to be initialized from XML, etc.
+    cls.componentTypes[type.__name__] = type
+    print "Component.registerType(): Component type \'" + type.__name__ + "\' registered."
   
   @classmethod
   def fromXMLElement(cls, xmlElement, actor=None):
     """Create a Component instance from XML element."""
     # NOTE Subclasses should override this to extract relevant properties from xmlElement
-    # TODO Extract common element attributes such as id
-    # TODO Delegate component creation to appropriate subclass based on XML tag, return None when invalid
-    return Component(actor)
+    # Delegate component creation to appropriate subclass based on XML tag, return None when invalid
+    try:
+      return cls.componentTypes[xmlElement.tag].fromXMLElement(xmlElement, actor)
+    except KeyError:
+      print "Component.fromXMLElement(): Unregistered component type name \'" + xmlElement.tag + "\'"
+    except AttributeError:
+      print "Component.fromXMLElement(): Invalid component type \'" + xmlElement.tag + "\' [fromXMLElement() method missing?]"
+    return None
   
   def __init__(self, actor=None):
     self.actor = actor  # needed to maintain a link to containing actor
