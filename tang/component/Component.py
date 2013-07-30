@@ -7,6 +7,7 @@ class Component:
   def fromXMLElement(cls, xmlElement, actor=None):
     """Create a Component instance from XML element."""
     # NOTE Subclasses should override this to extract relevant properties from xmlElement
+    # TODO Extract common element attributes such as id
     # TODO Delegate component creation to appropriate subclass based on XML tag, return None when invalid
     return Component(actor)
   

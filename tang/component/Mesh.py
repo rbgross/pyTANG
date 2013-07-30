@@ -16,11 +16,8 @@ class Mesh(Component):
     
     @classmethod
     def fromXMLElement(cls, xmlElement, actor=None):
-        try:
-            return cls.getMesh(xmlElement.attrib['src'], actor)
-        except KeyError as e:
-            print "Mesh.fromXMLElement(): Error: Required attribute not found in XML element:", e
-            return None
+        return cls.getMesh(xmlElement.get('src', 'Empty'), actor)
+        # NOTE If src attribute is not found in XML element, special 'Empty' mesh is used
     
     @classmethod
     def getMesh(cls, src, actor=None):
@@ -96,7 +93,8 @@ class Mesh(Component):
     
     def toXMLElement(self):
         xmlElement = Component.toXMLElement(self)
-        xmlElement.attrib['src'] = self.src
+        xmlElement.set('src', self.src)
+        return xmlElement
     
     def __str__(self):
         return "Mesh: { src: \"" + self.src + "\" }"

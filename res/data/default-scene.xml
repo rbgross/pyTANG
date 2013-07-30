@@ -1,37 +1,25 @@
 <?xml version="1.0"?>
-<Actor type="Empty" name="root">
-  <components>
-    <Transform>
-      <position>[0.0, 0.0, 0.0]</position>
-      <rotation>[0.0, 0.0, 0.0]</rotation>
-      <scale>[1.0, 1.0, 1.0]</scale>
-    </Transform>
-  </components>
-  <children>
-    <Actor type="Empty">
-      <components>
-        <Transform>
-          <position>[0.0, 0.0, 0.0]</position>
-          <rotation>[0.0, 0.0, 0.0]</rotation>
-          <scale>[1.0, 1.0, 1.0]</scale>
-        </Transform>
-      </components>
-      <children>
-        <Actor type="DataPoint">
-          <components>
-            <Mesh src="Dragon.obj" />
-            <Transform>
-              <position>[0.0, 0.0, 0.0]</position>
-              <rotation>[180.0, 0.0, 0.0]</rotation>
-              <scale>[1.0, 1.0, 1.0]</scale>
-            </Transform>
-            <Material>
-              <color>[0.8, 0.4, 0.4]</color>
-            </Material>
-          </components>
-          <children />
-        </Actor>
-      </children>
-    </Actor>
-  </children>
-</Actor>
+<scene>
+  <Actor type="Empty" id="root">
+    <components>
+      <Transform translation="0.0 0.0 0.0" rotation="0.0 0.0 0.0" scale="1.0 1.0 1.0"/>
+    </components>
+    <children>
+      <Actor type="Empty">
+        <components>
+          <Transform translation="0.0 0.0 0.0" rotation="0.0 0.0 0.0" scale="1.0 1.0 1.0"/>
+        </components>
+        <children>
+          <Actor type="DataPoint">
+            <components>
+              <Mesh src="Dragon.obj" />
+              <Transform translation="0.0 0.0 0.0" rotation="180.0 0.0 0.0" scale="1.0 1.0 1.0"/>
+              <Material color="0.8 0.4 0.4"/>
+            </components>
+            <children/>
+          </Actor>
+        </children>
+      </Actor>
+    </children>
+  </Actor>
+</scene>
