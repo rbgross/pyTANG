@@ -33,32 +33,36 @@ class Actor:
     
     return actor
   
-  def __init__(self, renderer, scene):
-    self.renderer = renderer  # TODO make renderer a component (?) and remove dependency on scene
-    self.scene = scene
+  def __init__(self, renderer):
+    self.renderer = renderer  # TODO make renderer a component?
     
     # Dictionary to store all components by name
     self.components = dict()
     
     # List of child actors
     self.children = []
+    
+    # TODO Consider a finalize() method that copies out references to key components for fast retrieval,
+    #   and possibly pre-computes some results (such as a composite transform matrix)
   
-  def draw(self):
+  def draw(self, transform=hm.identity()):
+    # TODO draw and recurse down only when this Actor is enabled
     # TODO move to a more generic approach?
     #   e.g.:- for component in self.components: component.apply()
     #   But how do we ensure order is maintained? (Mesh must be rendered after Transform and Material have been applied)
     try:
-      model = hm.translation(self.scene.model, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
-      model = hm.rotation(model, self.components['Transform'].rotation[0], [1, 0, 0])
-      model = hm.rotation(model, self.components['Transform'].rotation[1], [0, 1, 0])
-      model = hm.rotation(model, self.components['Transform'].rotation[2], [0, 0, 1])
-      # TODO scale
-      self.renderer.setModel(model)
-    except KeyError:
-      # No Transform component present, use global transform?
-      self.renderer.setModel(scene.model)
+      transform = hm.translation(transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
+      transform = hm.rotation(transform, self.components['Transform'].rotation[0], [1, 0, 0])
+      transform = hm.rotation(transform, self.components['Transform'].rotation[1], [0, 1, 0])
+      transform = hm.rotation(transform, self.components['Transform'].rotation[2], [0, 0, 1])
+      transform = hm.scale(transform, self.components['Transform'].scale)
+    except KeyError, AttributeError:
+      # Transform component not present or incomplete/invalid
+      pass  #self.renderer.setModelMatrix(transform)  # use base (parent) transform (?) - should be already set
     
     try:
+      # TODO Check if this actor is visible and has a mesh, and only then render mesh
+      self.renderer.setModelMatrix(transform)
       self.renderer.setDiffCol(self.components['Material'].color)
       self.components['Mesh'].render()
     except KeyError:
@@ -66,7 +70,7 @@ class Actor:
       pass
     
     for child in self.children:
-        child.draw() # TODO implement ability to show/hide actors and/or children
+      child.draw(transform)  # TODO do not draw if not enabled (e.g. an invisible actor should be enabled, but not visible)
   
   def toXMLElement(self):
     xmlElement = ET.Element(self.__class__.__name__)
@@ -77,7 +81,7 @@ class Actor:
     
     childrenElement = ET.SubElement(xmlElement, 'children')
     for child in self.children:
-      childrenElement.append(child.toXMLElement())
+      childrenElement.append(child.toXMLElement())  # TODO only export non-transient children
     
     return xmlElement
   

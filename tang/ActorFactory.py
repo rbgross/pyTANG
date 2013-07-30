@@ -12,11 +12,11 @@ from Actor import Actor
 from component.Mesh import Mesh
 from component.Transform import Transform
 from component.Material import Material
+from component.Cube import Cube
 
 class ActorFactory:
-    def __init__(self, renderer, scene):
+    def __init__(self, renderer):
         self.renderer = renderer
-        self.scene = scene
         self.loadResources()
 
     def loadResources(self):
@@ -25,11 +25,11 @@ class ActorFactory:
 
     def makeEmpty(self):
         """Create an Actor with no components; useful for building up an actor from scratch."""
-        return Actor(self.renderer, self.scene)
+        return Actor(self.renderer)
 
     def makeDefault(self, meshSrc="Empty"):
         """Create an Actor with a default set of components, and specified mesh."""
-        actor = Actor(self.renderer, self.scene)
+        actor = Actor(self.renderer)
         actor.components['Mesh'] = Mesh.getMesh(meshSrc)  # NOTE Meshes are currently shared, therefore not linked to individual actors
         actor.components['Transform'] = Transform(actor=actor)
         actor.components['Material'] = Material(actor=actor)

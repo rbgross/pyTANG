@@ -1,5 +1,4 @@
 import numpy as np
-import xml.etree.ElementTree as ET
 
 from Component import Component
 
@@ -21,7 +20,7 @@ class Material(Component):
       return xmlElement
   
   def __str__(self):
-      return "Material: { color: " + str(self.color) + "}"
+      return "Material: { color: " + str(self.color) + " }"
 
 # Register component type for automatic delegation (e.g. when inflating from XML)
 Component.registerType(Material)

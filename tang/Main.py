@@ -26,7 +26,6 @@ from Context import Context
 from Renderer import Renderer
 from Scene import Scene
 from Controller import Controller
-from component.Mesh import Mesh
 if haveCV:
   from vision.input import VideoInput
   from vision.gl import FrameProcessorGL
@@ -81,9 +80,9 @@ class Main:
             colorTracker.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
             imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
             
-            # Rotate and translate model to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
-            self.context.scene.model[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model matrix
-            self.context.scene.model[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model matrix
+            # Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
+            self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
+            self.context.scene.transform[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
         self.logger.info("[Vision loop] Done.")
       
       visionThread = Thread(target=visionLoop)

@@ -18,10 +18,10 @@ class Component:
     # Delegate component creation to appropriate subclass based on XML tag, return None when invalid
     try:
       return cls.componentTypes[xmlElement.tag].fromXMLElement(xmlElement, actor)
-    except KeyError:
-      print "Component.fromXMLElement(): Unregistered component type name \'" + xmlElement.tag + "\'"
-    except AttributeError:
-      print "Component.fromXMLElement(): Invalid component type \'" + xmlElement.tag + "\' [fromXMLElement() method missing?]"
+    except KeyError as e:
+      print "Component.fromXMLElement(): Unregistered component type name \'" + xmlElement.tag + "\': " + str(e)
+    except AttributeError as e:
+      print "Component.fromXMLElement(): Invalid component type \'" + xmlElement.tag + "\' [fromXMLElement() method missing?]: " + str(e)
     return None
   
   def __init__(self, actor=None):

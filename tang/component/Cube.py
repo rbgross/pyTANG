@@ -1,0 +1,67 @@
+from math import copysign, acos, atan2, hypot
+import numpy as np
+
+from Actor import Actor
+from Component import Component
+from Transform import Transform
+from Material import Material
+from Mesh import Mesh
+from vision.colortracking import Trackable, cube_vertices, cube_edges, cube_scale, cube_vertex_colors, colors_by_name
+
+class Cube(Component, Trackable):
+  @classmethod
+  def fromXMLElement(cls, xmlElement, actor=None):
+    scale = xmlElement.get('scale')
+    return Cube(
+      np.fromstring(scale, dtype=np.float32, sep=' ') if scale is not None else cube_scale,
+      actor)
+  
+  def __init__(self, scale=cube_scale, actor=None):
+    Component.__init__(self, actor)
+    self.scale = scale
+    
+    # Scale vertices of base cube
+    self.vertices = cube_vertices * self.scale
+    self.vertex_colors = cube_vertex_colors
+    self.vertex_scale = np.float32([3.0, 3.0, 3.0])
+    self.edges = cube_edges
+    self.edge_scale = np.float32([1.0, 1.0, 1.0])
+    self.edge_color = np.float32([0.8, 0.7, 0.5])
+    # TODO make some of these parameters come from XML
+    
+    # TODO mark generated child actors (corners and edges) as transient, and prevent them from being exported in XML
+    
+    # Add spheres at cube corners (vertices) with appropriate color
+    for vertex, colorName in zip(self.vertices, self.vertex_colors):
+      vertexActor = Actor(self.actor.renderer)
+      vertexActor.components['Transform'] = Transform(translation=vertex, scale=self.vertex_scale, actor=vertexActor)
+      vertexActor.components['Material'] = Material(color=colors_by_name[colorName], actor=vertexActor)
+      vertexActor.components['Mesh'] = Mesh.getMesh(src="SmallSphere.obj", actor=vertexActor)
+      self.actor.children.append(vertexActor)
+    
+    # Add edges
+    for u, v in self.edges:
+      if u < len(self.vertices) and v < len(self.vertices) and self.vertices[u] is not None and self.vertices[v] is not None:  # sanity check
+        midPoint = (self.vertices[u] + self.vertices[v]) / 2.0
+        diff = self.vertices[v] - self.vertices[u]
+        mag = np.linalg.norm(diff, ord=2)
+        xy_mag = hypot(diff[0], diff[1])
+        #zx_mag = hypot(diff[2], diff[0])
+        rotation = np.degrees(np.float32([atan2(diff[1], diff[0]), acos(diff[1] / mag), 0])) if (mag != 0 and xy_mag != 0) else np.float32([0.0, 0.0, 0.0])
+        #print "u: ", self.vertices[u], ", v: ", self.vertices[v], ", v-u: ", diff, ", mag: ", mag, ", rot:", rotation
+        edgeActor = Actor(self.actor.renderer)
+        edgeActor.components['Transform'] = Transform(translation=midPoint, rotation=rotation, scale=self.edge_scale, actor=edgeActor)
+        edgeActor.components['Material'] = Material(color=self.edge_color, actor=edgeActor)
+        edgeActor.components['Mesh'] = Mesh.getMesh(src="CubeEdge.obj", actor=edgeActor)  # TODO replace with cylindrical edge
+        self.actor.children.append(edgeActor)
+  
+  def toXMLElement(self):
+      xmlElement = Component.toXMLElement(self)
+      xmlElement.set('scale', str(self.scale).strip('[ ]'))
+      return xmlElement
+  
+  def __str__(self):
+      return "Cube: { scale: " + str(self.scale) + " }"
+
+# Register component type for automatic delegation (e.g. when inflating from XML)
+Component.registerType(Cube)

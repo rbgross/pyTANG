@@ -30,7 +30,7 @@ class Renderer:
         self.colorShader.setUniformMat4('view', hm.identity())
         self.colorShader.setUniformMat4('proj', cameraMatrix)
 
-    def setModel(self, model):
+    def setModelMatrix(self, model):
         self.colorShader.setUniformMat4('model', model)
 
     def setLightPos(self, lightPos):

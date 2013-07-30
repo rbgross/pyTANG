@@ -19,18 +19,17 @@ class Scene:
         self.context = Context.getInstance()  # NOTE must contain renderer
         
         self.hideCube = False
-        self.model = hm.identity()
+        self.transform = hm.identity()
         self.light = Light(self.context.renderer)
         
-        self.actorFactory = ActorFactory(self.context.renderer, self)
+        self.actorFactory = ActorFactory(self.context.renderer)
         self.actors = []
         #self.readData(self.context.getResourcePath('data', 'PerspectiveScene.txt'))  # deprecated; load from XML instead
         #self.writeXML(filename + '.xml')  # enable this to convert a .txt scene file to XML (NOTE will write to file in <resources>/data/!)
         self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
         self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
         print "Scene.__init__(): Loaded {} top-level actor(s)".format(len(self.actors))
-        #for actor in self.actors:
-        #    print actor
+        #self.dump()
     
     def readData(self, filename):
         print "Scene.readData(): Parsing file:", filename
@@ -77,9 +76,17 @@ class Scene:
         print "Scene.writeXML(): Written to file:", filename
     
     def draw(self):
-        if not self.hideCube:
+        for actor in self.actors:
+            actor.draw(self.transform)
+        
+        '''if not self.hideCube:
             for i in xrange(0, 8):
-                self.actors[i].draw()
+                self.actors[i].draw(self.transform)
         
         for i in xrange(8, len(self.actors)):
-            self.actors[i].draw()
+            self.actors[i].draw(self.transform)'''
+    
+    def dump(self):
+        print "Scene.dump(): Actors:-"
+        for actor in self.actors:
+            print actor

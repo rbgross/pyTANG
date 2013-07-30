@@ -46,10 +46,23 @@ cube_vertices = np.float32(
    [ 1,  -1,  1],
    [ 1,  1,  1],
    [ -1,  1,  1]])
+
 cube_edges = [(0, 1), (1, 2), (2, 3), (3, 0),
               (4, 5), (5, 6), (6, 7), (7, 4),
               (0, 4), (1, 5), (2, 6), (3, 7)]
-cube_scale = [10, 10, 10]  # TODO ensure cube is scaled correctly (check units)
+
+cube_scale = np.float32([10.0, 10.0, 10.0])  # TODO ensure cube is scaled correctly (check units)
+
+cube_vertex_colors = [
+  'orange', 'yellow', 'red', 'blue',
+  'red', 'blue', 'orange', 'yellow' ]
+
+colors_by_name = {
+  'red': np.float32([0.8, 0.0, 0.0]),
+  'green': np.float32([0.0, 0.8, 0.0]),
+  'blue': np.float32([0.0, 0.0, 0.8]),
+  'orange': np.float32([0.8, 0.4, 0.0]),
+  'yellow': np.float32([0.8, 0.8, 0.0]) }
 
 # Rect
 #square_tag_by_vertex = ['red', 'blue', 'green', 'yellow']
@@ -92,6 +105,11 @@ class Blob:
   
   def __str__(self):
     return "<Blob {tag} at ({center[0]:.2f}, {center[1]:.2f}), size: ({size[0]:.2f}, {size[1]:.2f})>".format(tag=self.tag, center=self.center, size=self.size)
+
+
+class Trackable:
+  """Abstract base class to (eventually) allow multiple independently trackable objects."""
+  pass  # TODO implement this and integrate with ColorTracker
 
 
 class ColorTracker(FrameProcessor):

@@ -1,5 +1,4 @@
 import numpy as np
-import xml.etree.ElementTree as ET
 
 from Component import Component
 
