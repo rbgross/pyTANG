@@ -33,8 +33,9 @@ class Actor:
     
     return actor
   
-  def __init__(self, renderer):
+  def __init__(self, renderer, isTransient=False):
     self.renderer = renderer  # TODO make renderer a component?
+    self.isTransient = isTransient  # if transient, will not be exported (in XML, etc.)
     
     # Dictionary to store all components by name
     self.components = dict()
@@ -81,31 +82,22 @@ class Actor:
     
     childrenElement = ET.SubElement(xmlElement, 'children')
     for child in self.children:
-      childrenElement.append(child.toXMLElement())  # TODO only export non-transient children
+      if not child.isTransient:  # only export non-transient children
+        childrenElement.append(child.toXMLElement())
     
     return xmlElement
   
   def toString(self, indent=""):
     out = indent + "Actor: {\n"
-    out += indent + "  components: {\n"
-    if 'Mesh' in self.components:
-      out += indent + "    " + str(self.components['Mesh']) + ",\n"
-    if 'Transform' in self.components:
-      out += indent + "    Transform: {\n"
-      out += indent + "      translation: " + str(self.components['Transform'].translation) + ",\n"
-      out += indent + "      rotation: " + str(self.components['Transform'].rotation) + ",\n"
-      out += indent + "      scale: " + str(self.components['Transform'].scale) + "\n"
-      out += indent + "    },\n"
-    if 'Material' in self.components:
-      out += indent + "    Material: {\n"
-      out += indent + "      color: " + str(self.components['Material'].color) + "\n"
-      out += indent + "    }\n"
-    out += indent + "  },\n"
-    out += indent + "  children: {\n"
+    if self.components:
+      out += indent + "  components: {\n"
+      out += ",\n".join(component.toString(indent + "    ") for component in self.components.itervalues()) + "\n"
+      out += indent + "  }"
+      out += ",\n" if self.children else "\n"
     if self.children:
-      out += ",\n".join(child.toString(indent + "    ") for child in self.children)
-      out += "\n"
-    out += indent + "  }\n"
+      out += indent + "  children: {\n"
+      out += ",\n".join(child.toString(indent + "    ") for child in self.children if not child.isTransient) + "\n"  # only show non-transient children
+      out += indent + "  }\n"
     out += indent + "}"
     
     return out

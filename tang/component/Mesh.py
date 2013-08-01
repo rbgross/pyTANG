@@ -96,8 +96,11 @@ class Mesh(Component):
         xmlElement.set('src', self.src)
         return xmlElement
     
+    def toString(self, indent=""):
+        return indent + "Mesh: { src: \"" + self.src + "\" }"
+    
     def __str__(self):
-        return "Mesh: { src: \"" + self.src + "\" }"
+        return self.toString()
 
 # Register component type for automatic delegation (e.g. when inflating from XML)
 Component.registerType(Mesh)

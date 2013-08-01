@@ -19,8 +19,11 @@ class Material(Component):
       xmlElement.set('color', str(self.color).strip('[ ]'))
       return xmlElement
   
+  def toString(self, indent=""):
+      return indent + "Material: { color: " + str(self.color) + " }"
+  
   def __str__(self):
-      return "Material: { color: " + str(self.color) + " }"
+      return self.toString()
 
 # Register component type for automatic delegation (e.g. when inflating from XML)
 Component.registerType(Material)

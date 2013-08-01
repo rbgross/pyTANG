@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<scene>
+  <Actor>
+    <components>
+      <Cube scale="10.0 10.0 10.0"/>
+    </components>
+    <children/>
+  </Actor>
+</scene>

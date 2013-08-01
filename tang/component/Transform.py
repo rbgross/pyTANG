@@ -28,12 +28,15 @@ class Transform(Component):
       xmlElement.set('scale', str(self.scale).strip('[ ]'))
       return xmlElement
   
+  def toString(self, indent=""):
+      return indent + "Transform: {\n" + \
+             indent + "  translation: " + str(self.translation) + ",\n" + \
+             indent + "  rotation: " + str(self.rotation) + ",\n" + \
+             indent + "  scale: " + str(self.scale) + "\n" + \
+             indent + "}"
+  
   def __str__(self):
-      return "Transform: {\n" + \
-             "  translation: " + str(self.translation) + ",\n" + \
-             "  rotation: " + str(self.rotation) + ",\n" + \
-             "  scale: " + str(self.scale) + "\n" + \
-             "}"
+      return self.toString()
 
 # Register component type for automatic delegation (e.g. when inflating from XML)
 Component.registerType(Transform)

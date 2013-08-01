@@ -13,6 +13,7 @@ from component.Mesh import Mesh
 from component.Transform import Transform
 from component.Material import Material
 from component.Cube import Cube
+from component.RadialTree import RadialTree
 
 class ActorFactory:
     def __init__(self, renderer):
@@ -20,6 +21,7 @@ class ActorFactory:
         self.loadResources()
 
     def loadResources(self):
+        # TODO load meshes even for each component type
         for src in ['Cube.obj', 'CubeEdge.obj', 'SmallSphere.obj', 'Dragon.obj', 'TinySphere.obj']:
             Mesh.getMesh(src)  # ensures this mesh is loaded
 

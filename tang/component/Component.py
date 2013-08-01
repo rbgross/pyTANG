@@ -34,6 +34,9 @@ class Component:
     #   base node and then add further attributes and sub-elements
     return ET.Element(self.__class__.__name__)
   
+  def toString(self, indent=""):
+    """Return a brief string representation of this component object, with optional indentation."""
+    return indent + self.__class__.__name__ + ": { }"
+  
   def __str__(self):
-    """Return a brief string representation of this component object."""
-    return "Component: { }"
+    return self.toString()

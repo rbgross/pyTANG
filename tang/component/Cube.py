@@ -29,11 +29,11 @@ class Cube(Component, Trackable):
     self.edge_color = np.float32([0.8, 0.7, 0.5])
     # TODO make some of these parameters come from XML
     
-    # TODO mark generated child actors (corners and edges) as transient, and prevent them from being exported in XML
+    # NOTE Mark generated child actors (corners and edges) as transient, to prevent them from being exported in XML
     
     # Add spheres at cube corners (vertices) with appropriate color
     for vertex, colorName in zip(self.vertices, self.vertex_colors):
-      vertexActor = Actor(self.actor.renderer)
+      vertexActor = Actor(self.actor.renderer, isTransient=True)
       vertexActor.components['Transform'] = Transform(translation=vertex, scale=self.vertex_scale, actor=vertexActor)
       vertexActor.components['Material'] = Material(color=colors_by_name[colorName], actor=vertexActor)
       vertexActor.components['Mesh'] = Mesh.getMesh(src="SmallSphere.obj", actor=vertexActor)
@@ -49,10 +49,10 @@ class Cube(Component, Trackable):
         #zx_mag = hypot(diff[2], diff[0])
         rotation = np.degrees(np.float32([atan2(diff[1], diff[0]), acos(diff[1] / mag), 0])) if (mag != 0 and xy_mag != 0) else np.float32([0.0, 0.0, 0.0])
         #print "u: ", self.vertices[u], ", v: ", self.vertices[v], ", v-u: ", diff, ", mag: ", mag, ", rot:", rotation
-        edgeActor = Actor(self.actor.renderer)
+        edgeActor = Actor(self.actor.renderer, isTransient=True)
         edgeActor.components['Transform'] = Transform(translation=midPoint, rotation=rotation, scale=self.edge_scale, actor=edgeActor)
         edgeActor.components['Material'] = Material(color=self.edge_color, actor=edgeActor)
-        edgeActor.components['Mesh'] = Mesh.getMesh(src="CubeEdge.obj", actor=edgeActor)  # TODO replace with cylindrical edge
+        edgeActor.components['Mesh'] = Mesh.getMesh(src="CubeEdge.obj", actor=edgeActor)  # TODO fix Z-fighting issue and use CubeEdge_cylinder.obj
         self.actor.children.append(edgeActor)
   
   def toXMLElement(self):
@@ -60,8 +60,11 @@ class Cube(Component, Trackable):
       xmlElement.set('scale', str(self.scale).strip('[ ]'))
       return xmlElement
   
+  def toString(self, indent=""):
+      return indent + "Cube: { scale: " + str(self.scale) + " }"
+  
   def __str__(self):
-      return "Cube: { scale: " + str(self.scale) + " }"
+      return self.toString()
 
 # Register component type for automatic delegation (e.g. when inflating from XML)
 Component.registerType(Cube)

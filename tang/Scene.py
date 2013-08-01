@@ -26,8 +26,12 @@ class Scene:
         self.actors = []
         #self.readData(self.context.getResourcePath('data', 'PerspectiveScene.txt'))  # deprecated; load from XML instead
         #self.writeXML(filename + '.xml')  # enable this to convert a .txt scene file to XML (NOTE will write to file in <resources>/data/!)
-        self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
-        self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
+        
+        #self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
+        self.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))
+        self.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
+        #self.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))
+        #self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
         print "Scene.__init__(): Loaded {} top-level actor(s)".format(len(self.actors))
         #self.dump()
     
