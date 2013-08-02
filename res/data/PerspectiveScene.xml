@@ -3,7 +3,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-3.62100005  4.          8."/>
     </components>
     <children/>
@@ -11,7 +11,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="3.84299994  4.          7.5999999"/>
     </components>
     <children/>
@@ -19,7 +19,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-6.50299978  4.          7.19999981"/>
     </components>
     <children/>
@@ -27,7 +27,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-7.07800007  4.          6.89"/>
     </components>
     <children/>
@@ -35,7 +35,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-0.39300001  4.          6.4"/>
     </components>
     <children/>
@@ -43,7 +43,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="3.82500005  4.          6."/>
     </components>
     <children/>
@@ -51,7 +51,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.39400005  4.          5.5999999"/>
     </components>
     <children/>
@@ -59,7 +59,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-3.51699996  4.          5.19999981"/>
     </components>
     <children/>
@@ -67,7 +67,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-3.43600011  4.          4.89"/>
     </components>
     <children/>
@@ -75,7 +75,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="4.40299988  4.          4.4"/>
     </components>
     <children/>
@@ -83,7 +83,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-0.147  4.     4."/>
     </components>
     <children/>
@@ -91,7 +91,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="5.54500008  4.          3.5999999"/>
     </components>
     <children/>
@@ -99,7 +99,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.61199999  4.          3.20000005"/>
     </components>
     <children/>
@@ -107,7 +107,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.95300007  4.          2.79999995"/>
     </components>
     <children/>
@@ -115,7 +115,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-3.6500001  4.         2.4"/>
     </components>
     <children/>
@@ -123,7 +123,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-5.80100012  4.          2."/>
     </components>
     <children/>
@@ -131,7 +131,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.74599981  4.          1.60000002"/>
     </components>
     <children/>
@@ -139,7 +139,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-0.588       4.          1.20000005"/>
     </components>
     <children/>
@@ -147,7 +147,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="5.25500011  4.          0.8"/>
     </components>
     <children/>
@@ -155,7 +155,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-5.44799995  4.          0.4"/>
     </components>
     <children/>
@@ -163,7 +163,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-1.972  4.     0."/>
     </components>
     <children/>
@@ -171,7 +171,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.86299992  4.         -0.4"/>
     </components>
     <children/>
@@ -179,7 +179,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="1.          4.         -0.8"/>
     </components>
     <children/>
@@ -187,7 +187,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="4.13199997  4.         -1.20000005"/>
     </components>
     <children/>
@@ -195,7 +195,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="5.28299999  4.         -1.60000002"/>
     </components>
     <children/>
@@ -203,7 +203,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-7.88100004  4.         -2."/>
     </components>
     <children/>
@@ -211,7 +211,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-5.45599985  4.         -2.4"/>
     </components>
     <children/>
@@ -219,7 +219,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.40399981  4.         -2.79999995"/>
     </components>
     <children/>
@@ -227,7 +227,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="4.75299978  4.         -3.20000005"/>
     </components>
     <children/>
@@ -235,7 +235,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-4.22399998  4.         -3.5999999"/>
     </components>
     <children/>
@@ -243,7 +243,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="5.44700003  4.         -4."/>
     </components>
     <children/>
@@ -251,7 +251,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-2.62800002  4.         -4.4"/>
     </components>
     <children/>
@@ -259,7 +259,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-3.80599999  4.         -4.89"/>
     </components>
     <children/>
@@ -267,7 +267,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.42999983  4.         -5.19999981"/>
     </components>
     <children/>
@@ -275,7 +275,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="2.21000004  4.         -5.5999999"/>
     </components>
     <children/>
@@ -283,7 +283,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.66300011  4.         -6."/>
     </components>
     <children/>
@@ -291,7 +291,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.3039999  4.        -6.4"/>
     </components>
     <children/>
@@ -299,7 +299,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-7.63100004  4.         -6.89"/>
     </components>
     <children/>
@@ -307,7 +307,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="5.079       4.         -7.19999981"/>
     </components>
     <children/>
@@ -315,7 +315,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="7.92199993  4.         -7.5999999"/>
     </components>
     <children/>
@@ -323,7 +323,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.31099987  4.         -8."/>
     </components>
     <children/>
@@ -331,7 +331,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-5.77199984  4.69500017  7.93900013"/>
     </components>
     <children/>
@@ -339,7 +339,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="0.55199999  5.36800003  7.75899982"/>
     </components>
     <children/>
@@ -347,7 +347,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="2.95000005  6.          7.46400023"/>
     </components>
     <children/>
@@ -355,7 +355,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-5.92600012  6.5710001   7.06400013"/>
     </components>
     <children/>
@@ -363,7 +363,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-2.22900009  7.06400013  6.5710001"/>
     </components>
     <children/>
@@ -371,7 +371,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.15600014  7.46400023  6."/>
     </components>
     <children/>
@@ -379,7 +379,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.79899979  7.75899982  5.36800003"/>
     </components>
     <children/>
@@ -387,7 +387,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-1.45799994  7.93900013  4.69500017"/>
     </components>
     <children/>
@@ -395,7 +395,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="0.634  8.     4."/>
     </components>
     <children/>
@@ -403,7 +403,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-7.56500006  7.93900013  3.30500007"/>
     </components>
     <children/>
@@ -411,7 +411,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="4.17500019  7.75899982  2.63199997"/>
     </components>
     <children/>
@@ -419,7 +419,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-1.097       7.46400023  2."/>
     </components>
     <children/>
@@ -427,7 +427,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="-2.41899991  7.06400013  1.42900002"/>
     </components>
     <children/>
@@ -435,7 +435,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="2.55699992  6.5710001   0.93599999"/>
     </components>
     <children/>
@@ -443,7 +443,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="0.58499998  6.          0.53600001"/>
     </components>
     <children/>
@@ -451,7 +451,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="6.06400013  5.36800003  0.241"/>
     </components>
     <children/>
@@ -459,7 +459,7 @@
   <Actor>
     <components>
       <Material color="0.8  0.8  0.8"/>
-      <Mesh src="SmallSphere.obj"/>
+      <Mesh src="TinySphere.obj"/>
       <Transform rotation="0.  0.  0." scale="1.  1.  1." translation="4.85400009  4.69500017  0.061"/>
     </components>
     <children/>

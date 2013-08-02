@@ -25,6 +25,8 @@ class Controller:
         self.leftPressed = False
         self.rightPressed = False
 
+        self.manualControl = False
+
     def pollInput(self):
         currentTime = time.clock()
         elapsedTime = currentTime - self.timer
@@ -35,23 +37,45 @@ class Controller:
             #self.wheelPosition = tempWheelPosition
             #self.setView(hm.lookat(hm.identity(), np.array([0.0, 0.0, 55.0 - self.wheelPosition, 1.0], dtype = np.float32), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32)))
 
-        if glfw.GetKey('A'):
-            self.context.scene.transform = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 1, 0]), self.context.scene.transform)
+        if glfw.GetKey('M'):
+            print "Initializing manual control"
+            self.manualControl = True
+            self.context.scene.transform = hm.translation(hm.identity(), [0, 0, 60])
 
-        if glfw.GetKey('D'):
+        if glfw.GetKey('P'):
+            print "Stopping manual control"
+            self.manualControl = False
+        
+        if glfw.GetKey('A') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
             self.context.scene.transform = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 1, 0]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
 
-        if glfw.GetKey('W'):
+        if glfw.GetKey('D') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 1, 0]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
+
+        if glfw.GetKey('W') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
             self.context.scene.transform = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [1, 0, 0]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
 
-        if glfw.GetKey('S'):
+        if glfw.GetKey('S') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
             self.context.scene.transform = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [1, 0, 0]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
 
-        if glfw.GetKey('Q'):
-            self.context.scene.transform = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.context.scene.transform)
-
-        if glfw.GetKey('E'):
+        if glfw.GetKey('Q') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
             self.context.scene.transform = np.dot(hm.rotation(hm.identity(), -60 * elapsedTime, [0, 0, 1]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
+
+        if glfw.GetKey('E') and self.manualControl:
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.context.scene.transform)
+            self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
+
         
         if glfw.GetKey('X'):
             self.context.scene.dump()  # TODO prevent multiple key-presses

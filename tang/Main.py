@@ -42,6 +42,9 @@ class Main:
   """Main application class."""
   
   def __init__(self):
+
+    #sys.argv = ['Main.py', '../res', '../res/videos/test-10.mpeg']
+    
     # * Initialize global context (command line args are parsed by Context)
     self.context = Context.createInstance(sys.argv)
     # NOTE Most objects require an initialized context, so do this as soon as possible
@@ -81,8 +84,9 @@ class Main:
             imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
             
             # Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
-            self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
-            self.context.scene.transform[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
+            if not self.context.controller.manualControl:
+              self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
+              self.context.scene.transform[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
         self.logger.info("[Vision loop] Done.")
       
       visionThread = Thread(target=visionLoop)
