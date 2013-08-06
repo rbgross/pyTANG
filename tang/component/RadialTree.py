@@ -49,7 +49,7 @@ class RadialTree(Component):
     
     # Recursively generate radial tree
     treeRoot = self.createRadialTree(self.fanout, self.depth, self.spread, isRoot=True)  # creates full hierarchy and returns root actor
-    treeRoot.components['Transform'] = Transform(rotation=np.random.uniform(-pi/2, pi/2, size=3), scale=self.rootScale, actor=treeRoot)  # NOTE random rotation ensures child vectors are not always generated close to the same canonical vectors
+    treeRoot.components['Transform'] = Transform(rotation=np.random.uniform(-pi/2, pi/2, size=3), scale=self.rootScale, actor=treeRoot)  # NOTE random rotation ensures child vectors are not always generated close to the same canonical vectors 
     treeRoot.components['Material'] = Material(color=self.rootColor, actor=treeRoot)
     treeRoot.components['Mesh'] = Mesh.getMesh(src=self.treeRootModelFile, actor=treeRoot)
     
@@ -81,21 +81,22 @@ class RadialTree(Component):
            [ -1,  1,  1 ]])  # NOTE these canonical directions are same as cube vertices!
         
         # ** Perturb child vectors, and compute unit direction vectors
-        perturbation = np.random.normal(scale=1.5, size=(8, 3))
+        perturbation = np.random.normal(scale=1.0, size=childVectors.shape)
         #print "RadialTree.__init__(): Child:-\norig. vectors:\n", childVectors, "\nperturbation :\n", perturbation
         childVectors += perturbation
         #print "pert. vectors:\n", childVectors
-        childNorms = np.linalg.norm(childVectors, ord=2)
-        childUnits = childVectors / childNorms
+        childNorms = np.apply_along_axis(lambda vec:np.linalg.norm(vec, ord=2), 1, childVectors)
+        #print "child norms:\n", childNorms
+        childUnits = childVectors / childNorms[:, np.newaxis]
         
         # ** Use child unit vectors one by one to create fanout first-level children
-        numChildren = fanout if fanout <= len(childUnits) else len(childUnits)  # NOTE fanout <= len(childUnits)
+        numChildren = fanout if fanout <= childUnits.shape[0] else childUnits.shape[0]  # NOTE assert/enforce: actual fanout <= childUnits.shape[0]
         # TODO randomly pick from child unit vectors without replacement?
         for unit in childUnits[0:numChildren]:
           translation = self.treeEdgeLength * unit
           phi = np.arctan2(-unit[2], unit[0])
           theta = np.arcsin(unit[1])
-          rotation = np.degrees(np.float32([ np.random.uniform(-pi, pi), phi, theta ]))
+          rotation = np.degrees(np.float32([ 0, phi, theta ]))  # NOTE random X-axis rotation can be added (but won't make any difference): np.random.uniform(-pi, pi)
           
           #print "RadialTree.__init__(): Child:-\nunit:", unit, "[ norm = ", np.linalg.norm(unit, ord=2), "]\ntranslation:", translation, "\nrotation:", rotation
           childNode = self.createRadialTree(np.random.random_integers(3, 4), depth - 1, spread)  # recurse down, decreasing depth
