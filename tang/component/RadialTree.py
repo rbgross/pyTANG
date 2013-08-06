@@ -49,7 +49,7 @@ class RadialTree(Component):
     
     # Recursively generate radial tree
     treeRoot = self.createRadialTree(self.fanout, self.depth, self.spread, isRoot=True)  # creates full hierarchy and returns root actor
-    treeRoot.components['Transform'] = Transform(scale=self.rootScale, actor=treeRoot)
+    treeRoot.components['Transform'] = Transform(rotation=np.random.uniform(-pi/2, pi/2, size=3), scale=self.rootScale, actor=treeRoot)  # NOTE random rotation ensures child vectors are not always generated close to the same canonical vectors
     treeRoot.components['Material'] = Material(color=self.rootColor, actor=treeRoot)
     treeRoot.components['Mesh'] = Mesh.getMesh(src=self.treeRootModelFile, actor=treeRoot)
     
@@ -63,41 +63,73 @@ class RadialTree(Component):
     if depth <= 0:
       return None
     
-    # Create this node (an actor)
+    # * Create this node (an actor)
     treeNode = Actor(self.actor.renderer, isTransient=True)
     
-    # Attach children if depth > 1
+    # * Attach children if depth > 1
     if depth > 1:
-      # TODO Pick all random directions first, to ensure a good spread, and then generate children
-      while len(treeNode.children) < fanout:
-        # Pick a random direction for creating a new child
-        if not isRoot:
+      if isRoot:
+        # ** Pick all random directions first, to ensure a good spread, and then generate children
+        childVectors = np.float32(
+          [[ -1, -1, -1 ],
+           [  1, -1, -1 ],
+           [  1,  1, -1 ],
+           [ -1,  1, -1 ],
+           [ -1, -1,  1 ],
+           [  1, -1,  1 ],
+           [  1,  1,  1 ],
+           [ -1,  1,  1 ]])  # NOTE these canonical directions are same as cube vertices!
+        
+        # ** Perturb child vectors, and compute unit direction vectors
+        perturbation = np.random.normal(scale=1.5, size=(8, 3))
+        #print "RadialTree.__init__(): Child:-\norig. vectors:\n", childVectors, "\nperturbation :\n", perturbation
+        childVectors += perturbation
+        #print "pert. vectors:\n", childVectors
+        childNorms = np.linalg.norm(childVectors, ord=2)
+        childUnits = childVectors / childNorms
+        
+        # ** Use child unit vectors one by one to create fanout first-level children
+        numChildren = fanout if fanout <= len(childUnits) else len(childUnits)  # NOTE fanout <= len(childUnits)
+        # TODO randomly pick from child unit vectors without replacement?
+        for unit in childUnits[0:numChildren]:
+          translation = self.treeEdgeLength * unit
+          phi = np.arctan2(-unit[2], unit[0])
+          theta = np.arcsin(unit[1])
+          rotation = np.degrees(np.float32([ np.random.uniform(-pi, pi), phi, theta ]))
+          
+          #print "RadialTree.__init__(): Child:-\nunit:", unit, "[ norm = ", np.linalg.norm(unit, ord=2), "]\ntranslation:", translation, "\nrotation:", rotation
+          childNode = self.createRadialTree(np.random.random_integers(3, 4), depth - 1, spread)  # recurse down, decreasing depth
+          childNode.components['Transform'] = Transform(translation=translation, rotation=rotation, actor=childNode)  # NOTE scaling will accumulate, so use scale = 1 (default)
+          childNode.components['Material'] = Material(color=self.edgeColor, actor=childNode)
+          childNode.components['Mesh'] = Mesh.getMesh(src=self.treeEdgeModelFile, actor=childNode)
+          treeNode.children.append(childNode)
+      else:
+        while len(treeNode.children) < fanout:
+          # ** Pick a random direction for creating a new child
           spread_rad = np.radians(spread)
           phi = np.random.uniform(-spread_rad, spread_rad)  # rotation around Y axis
           theta = np.random.uniform(-spread_rad, spread_rad)  # rotation around Z axis
-        else:
-          phi = np.random.uniform(-pi, pi)  # rotation around Y axis
-          theta = np.random.uniform(-pi, pi)  # rotation around Z axis
-        rotation = np.degrees(np.float32([ 0.0, phi, theta ]))  # this will serve as orientation for the tree edge
-        
-        # TODO pick a random length; scale X axis accordingly (how? flatten tree hierarchy? pick from discrete lengths and use different models accordingly?)
-        
-        # Compute relative position of new child (in cartesian coordinates) and normalized unit vector
-        translation = np.float32([
-          self.treeEdgeLength * cos(theta) * cos(phi),
-          self.treeEdgeLength * sin(theta),
-          -self.treeEdgeLength * cos(theta) * sin(phi)
-        ])
-        norm = np.linalg.norm(translation, ord=2)
-        unit = translation / norm
-        
-        # TODO check closeness condition (too close to existing nodes? parent? - need absolute coordinates for that!)
-        
-        childNode = self.createRadialTree(np.random.random_integers(3, 4), depth - 1, spread)  # recurse down, decreasing depth
-        childNode.components['Transform'] = Transform(translation=translation, rotation=rotation, actor=childNode)  # NOTE scaling will accumulate, so use scale = 1 (default)
-        childNode.components['Material'] = Material(color=self.edgeColor, actor=childNode)
-        childNode.components['Mesh'] = Mesh.getMesh(src=self.treeEdgeModelFile, actor=childNode)
-        treeNode.children.append(childNode)
+          rotation = np.degrees(np.float32([ 0.0, phi, theta ]))  # this will serve as orientation for the tree edge
+          
+          # TODO pick a random length; scale X axis accordingly (how? flatten tree hierarchy? pick from discrete lengths and use different models accordingly?)
+          
+          # ** Compute relative position of new child (in cartesian coordinates) and normalized unit vector
+          translation = np.float32([
+            self.treeEdgeLength * cos(theta) * cos(phi),
+            self.treeEdgeLength * sin(theta),
+            -self.treeEdgeLength * cos(theta) * sin(phi)
+          ])
+          norm = np.linalg.norm(translation, ord=2)
+          unit = translation / norm
+          
+          # TODO check closeness condition (too close to existing nodes? parent? - need absolute coordinates for that!)
+          
+          # ** Generate and add child (with nested tree)
+          childNode = self.createRadialTree(np.random.random_integers(3, 4), depth - 1, spread)  # recurse down, decreasing depth
+          childNode.components['Transform'] = Transform(translation=translation, rotation=rotation, actor=childNode)  # NOTE scaling will accumulate, so use scale = 1 (default)
+          childNode.components['Material'] = Material(color=self.edgeColor, actor=childNode)
+          childNode.components['Mesh'] = Mesh.getMesh(src=self.treeEdgeModelFile, actor=childNode)
+          treeNode.children.append(childNode)
     
     return treeNode
   
