@@ -2,6 +2,7 @@
 import sys
 from math import pi
 import numpy as np
+from collections import OrderedDict
 
 # CV imports
 import cv2
@@ -16,6 +17,7 @@ from input import run
 doRenderContours = True
 doRenderMarkers = True
 doRenderCube = True
+doRenderFace = True
 doRenderVolume = False
 
 # Camera calibration
@@ -51,6 +53,14 @@ cube_edges = [(0, 1), (1, 2), (2, 3), (3, 0),
               (4, 5), (5, 6), (6, 7), (7, 4),
               (0, 4), (1, 5), (2, 6), (3, 7)]
 
+cube_faces = OrderedDict(
+  [('front' , (0, 3, 2, 1)),
+   ('back'  , (5, 6, 7, 4)),
+   ('left'  , (4, 7, 3, 0)),
+   ('right' , (1, 2, 6, 5)),
+   ('top'   , (4, 0, 1, 5)),
+   ('bottom', (3, 7, 6, 2))])
+
 cube_scale = np.float32([10.0, 10.0, 10.0])  # TODO ensure cube is scaled correctly (check units)
 
 cube_vertex_colors = [
@@ -70,7 +80,7 @@ colors_by_name = {
 
 # Cube
 square_vertex_by_tag = { 'orange': 0, 'yellow': 1, 'red': 2, 'blue': 3 }
-                         #'red': 4, 'blue': 5, 'orange': 6, 'yellow': 7 }
+                         #'red': 4, 'blue': 5, 'orange': 6, 'yellow': 7 }  # NOTE dicts must have unique keys, so this is not a good representation
 square_tag_by_vertex = { }
 for tag, vertex in square_vertex_by_tag.iteritems():
   square_tag_by_vertex[vertex] = tag
@@ -232,6 +242,8 @@ class ColorTracker(FrameProcessor):
     else:
       return True, self.imageOut  # nothing more to do, bail out
     
+    '''
+    # [Method 1. Try to match *base* face (i.e. a single face)]
     # * Map blob centers to base vertex points
     self.base_points = [None] * len(self.base_vertices)
     for blob in self.blobs:
@@ -245,19 +257,106 @@ class ColorTracker(FrameProcessor):
         return True, self.imageOut  # skip
         #break  # keep using last transform; TODO set rvec, tvec to None if tracking is lost for too long
     
+    # * If all base points are found, compute 3D projection/transform (as separate rotation and translation vectors: rvec, tvec)
     if foundBasePoints:
       self.base_points = np.float32(self.base_points)
       #self.logger.debug("Base points:\n{}".format(self.base_points))
-    
-      # * Compute 3D projection/transform (as separate rotation and translation vectors: rvec, tvec)
+      
       retval, self.rvec, self.tvec = cv2.solvePnP(self.base_vertices, self.base_points, camera_params, dist_coeffs)
       self.logger.debug("\nretval: {}\nrvec: {}\ntvec: {}".format(retval, self.rvec, self.tvec))
+    '''
     
+    # [Method 2. Try to match *any* face that might be visible]
+    # * For each (named) cube face
+    for name, face in cube_faces.iteritems():
+      # ** Obtain face vertices, vertex colors, and vertex color to index mapping (NOTE color == tag)
+      face_vertices = np.float32([self.cube_vertices[vertex_idx] for vertex_idx in face])
+      face_vertex_colors = [cube_vertex_colors[vertex_idx] for vertex_idx in face]
+      #print "face:", face, "\nface_vertices:", face_vertices, "\nface_vertex_colors:", face_vertex_colors
+      face_vertex_idx_by_color = OrderedDict(zip(face_vertex_colors, range(len(face_vertex_colors))))
+      #print "face_vertex_idx_by_color:", face_vertex_idx_by_color
+      
+      # ** Map blob centers to face vertex points
+      face_points = [None] * len(face)
+      for blob in self.blobs:
+        face_points[face_vertex_idx_by_color[blob.tag]] = blob.center  # NOTE last blob of a particular tag overwrites any previous blobs with same tag
+      
+      # ** Check if all face points have been found
+      isValidFace = True  # TODO split these verification steps into different methods (or one?) and avoid if-thens
+      for point in face_points:
+        if point is None:
+          isValidFace = False
+          self.logger.debug("Warning: Face point not detected")
+          break  # this face is incomplete, maybe some other face will match
+      
+      # ** If all face points are found, verify that they satisfy known topographical structure (order)
+      if isValidFace:
+        face_points = np.float32(face_points)
+        #print "face_points:\n{}".format(face_points)
+        
+        # NOTE Topographical structure is inherent in the order of face points (should be counter-clockwise)
+        # *** Compute centroid of face points
+        face_centroid = np.mean(face_points, axis=0)
+        #print "face_centroid: {}".format(face_centroid)
+        
+        # *** [2D] Compute heading angles to each point assuming face normal is pointing outward through the screen
+        heading_vecs = face_points - face_centroid
+        headings = np.float32([ np.arctan2(vec[1], vec[0]) for vec in heading_vecs ])
+        
+        # *** [3D] Compute face plane normal and heading angles to each point around the normal (TODO)
+        #face_normal = np.cross(face_vertices[1] - face_vertices[0], face_vertices[3] - face_vertices[0])
+        #print "face_normal: {}".format(face_normal)
+        
+        # *** These headings should be in decreasing order (since they are counter-clockwise, and Y-axis is downwards)
+        heading_diffs = headings - np.roll(headings, 1)
+        heading_diffs = ((heading_diffs + pi) % (2 * pi)) - pi  # ensures angle wraparound is handled correctly
+        #print "heading_diffs: {}".format(heading_diffs)
+        if np.any(heading_diffs > 0):
+          isValidFace = False  # if any heading angle difference is positive, skip this face
+        
+      # ** Check if face points form a convex quadrilateral facing us
+      if isValidFace:
+        #print "Face: {}".format(name)
+        #print "face_points:\n{}".format(face_points)
+        edge_vectors = face_points - np.roll(face_points, 1, axis=0)  # vectors between adjacent vertices (i.e. along edges)
+        #print "edge_vectors:\n{}".format(edge_vectors)
+        cross_prods = np.cross(edge_vectors, np.roll(edge_vectors, 1, axis=0))  # cross products of consecutive edge vectors
+        #print "cross_prods: {}".format(cross_prods)
+        if np.any(cross_prods < 0):
+          isValidFace = False  # if any cross product is negative, then quad is either non-convex or back-facing
+      
+      # ** Check if opposite heading vector lengths and angles are almost equal (i.e. the quad is almost a rhombus)
+      if isValidFace:
+        heading_lens = np.float32([np.hypot(vec[0], vec[1]) for vec in heading_vecs])
+        #print "heading_lens: {}".format(heading_lens)
+        isValidFace = abs(heading_lens[0] - heading_lens[2]) / max(heading_lens[0], heading_lens[2]) < 0.5 \
+                  and abs(heading_lens[1] - heading_lens[3]) / max(heading_lens[1], heading_lens[3]) < 0.5 \
+                  and abs(heading_diffs[0] - heading_diffs[2]) / max(heading_diffs[0], heading_diffs[2]) < 0.5 \
+                  and abs(heading_diffs[1] - heading_diffs[3]) / max(heading_diffs[1], heading_diffs[3]) < 0.5
+      
+      # ** Compute 3D projection/transform if a valid face is found (as separate rotation and translation vectors: rvec, tvec)
+      if isValidFace:
+        self.logger.debug("Valid face: {}".format(name))
+        if self.gui and doRenderFace:
+          face_centroid_int = (int(face_centroid[0]), int(face_centroid[1]))
+          cv2.circle(self.imageOut, face_centroid_int, 10, (0, 128, 0), -1)
+          for point, heading in zip(face_points, headings):
+            cv2.line(self.imageOut, face_centroid_int, (int(point[0]), int(point[1])), (0, 128, 0), 2)
+            #label_pos = (face_centroid_int[0] + int(100 * np.cos(heading)), face_centroid_int[1] + int(100 * np.sin(heading)))
+            #cv2.putText(self.imageOut, "{:.2f}".format(heading * 180 / pi), label_pos, cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 1)
+          cv2.putText(self.imageOut, name, face_centroid_int, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+        
+        retval, self.rvec, self.tvec = cv2.solvePnP(face_vertices, face_points, camera_params, dist_coeffs)
+        self.logger.debug("\nretval: {}\nrvec: {}\ntvec: {}".format(retval, self.rvec, self.tvec))
+        break  # use the first complete face that is found, and skip the rest
+        # TODO compute multiple transforms and pick best one (closest to last transform, cube center within bounds)
+    
+    # * Check if we have a valid transform
     if self.rvec is None or self.tvec is None:
-      return True, self.imageOut  # skip
+      return True, self.imageOut  # skip rendering
     
     # * Project a cube overlayed on top of video stream
-    if self.debug and doRenderCube:
+    if self.gui and doRenderCube:
       cube_points, jacobian = cv2.projectPoints(self.cube_vertices, self.rvec, self.tvec, camera_params, dist_coeffs)
       cube_points = cube_points.reshape(-1, 2)  # remove nesting
       #self.logger.debug("Projected cube points:\n{}".format(cube_points))
@@ -266,7 +365,7 @@ class ColorTracker(FrameProcessor):
           cv2.line(self.imageOut, (int(cube_points[u][0]), int(cube_points[u][1])), (int(cube_points[v][0]), int(cube_points[v][1])), (255, 255, 0), 2)
     
     # TODO Project a visualization/model overlayed on top of video stream
-    if doRenderVolume:
+    if self.gui and doRenderVolume:
       volume_points, jacobian = cv2.projectPoints(self.model_volume_points, self.rvec, self.tvec, camera_params, dist_coeffs)
       volume_points = volume_points.reshape(-1, 2)  # remove nesting
       for point, intensity in zip(volume_points, self.model_volume_intensities):
