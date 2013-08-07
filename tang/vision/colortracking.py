@@ -331,8 +331,8 @@ class ColorTracker(FrameProcessor):
         #print "heading_lens: {}".format(heading_lens)
         isValidFace = abs(heading_lens[0] - heading_lens[2]) / max(heading_lens[0], heading_lens[2]) < 0.5 \
                   and abs(heading_lens[1] - heading_lens[3]) / max(heading_lens[1], heading_lens[3]) < 0.5 \
-                  and abs(heading_diffs[0] - heading_diffs[2]) / max(heading_diffs[0], heading_diffs[2]) < 0.5 \
-                  and abs(heading_diffs[1] - heading_diffs[3]) / max(heading_diffs[1], heading_diffs[3]) < 0.5
+                  and abs(heading_diffs[0] - heading_diffs[2]) / max(heading_diffs[0], heading_diffs[2]) < 0.25 \
+                  and abs(heading_diffs[1] - heading_diffs[3]) / max(heading_diffs[1], heading_diffs[3]) < 0.25
       
       # ** Compute 3D projection/transform if a valid face is found (as separate rotation and translation vectors: rvec, tvec)
       if isValidFace:

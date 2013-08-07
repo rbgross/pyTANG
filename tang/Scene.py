@@ -81,14 +81,9 @@ class Scene:
     
     def draw(self):
         for actor in self.actors:
+            if self.hideCube and 'Cube' in actor.components:  # logic: actor containing a Cube component is *the* cube
+              continue  # skip rendering the cube
             actor.draw(self.transform)
-        
-        '''if not self.hideCube:
-            for i in xrange(0, 8):
-                self.actors[i].draw(self.transform)
-        
-        for i in xrange(8, len(self.actors)):
-            self.actors[i].draw(self.transform)'''
     
     def dump(self):
         print "Scene.dump(): Actors:-"
