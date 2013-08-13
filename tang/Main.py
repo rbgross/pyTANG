@@ -29,7 +29,7 @@ from Controller import Controller
 if haveCV:
   from vision.input import VideoInput
   from vision.gl import FrameProcessorGL
-  from vision.colortracking import ColorTracker
+  from vision.colortracking import CubeTracker
 
 # Globals
 # NOTE: glBlitFramebuffer() doesn't play well if source and destination sizes are different, so keep these same
@@ -59,6 +59,10 @@ class Main:
     self.context.renderer = Renderer()
     self.context.scene = Scene()
     self.context.controller = Controller()
+    
+    # * Find cube (TODO and other tools?) in scene (or add programmatically?)
+    self.cubeActor = self.context.scene.findActorByComponent('Cube')
+    self.cubeComponent = self.cubeActor.components['Cube'] if self.cubeActor is not None else None
   
   def run(self):
     # * Open camera/video file and start vision loop, if OpenCV is available
@@ -70,23 +74,28 @@ class Main:
                 'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                 'windowWidth': windowWidth, 'windowHeight': windowHeight }
       videoInput = VideoInput(camera, options)
-      colorTracker = ColorTracker(options)  # color marker tracker
+      cubeTracker = CubeTracker(options)  # specialized cube tracker
+      
+      # Setup tracking
+      if self.cubeComponent is not None:
+        cubeTracker.addMarkersFromTrackable(self.cubeComponent)
+      
       imageBlitter = FrameProcessorGL(options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
       # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
-      colorTracker.initialize(videoInput.image, 0.0)
-      imageBlitter.initialize(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
+      cubeTracker.initialize(videoInput.image, time.time())
+      imageBlitter.initialize(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, 0.0)
       
       def visionLoop():
         self.logger.info("[Vision loop] Starting...")
         while self.context.renderer.windowOpen():
           if videoInput.read():
-            colorTracker.process(videoInput.image, 0.0)  # NOTE this can be computationally expensive
-            imageBlitter.process(colorTracker.imageOut if colorTracker.imageOut is not None else videoInput.image, 0.0)
+            cubeTracker.process(videoInput.image, time.time())  # NOTE this can be computationally expensive
+            imageBlitter.process(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, time.time())
             
             # Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
             if not self.context.controller.manualControl:
-              self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(colorTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
-              self.context.scene.transform[0:3, 3] = colorTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
+              self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(cubeTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
+              self.context.scene.transform[0:3, 3] = cubeTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
         self.logger.info("[Vision loop] Done.")
       
       visionThread = Thread(target=visionLoop)

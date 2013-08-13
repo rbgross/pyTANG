@@ -150,13 +150,11 @@ def run(processor=FrameProcessor(options={ 'gui': True, 'debug': True }), gui=Tr
       fresh = False
     
     # ** Process frame
-    keepRunning, imageOut = processor.process(frame, timeNow)
+    imageOut = processor.process(frame, timeNow)
     
     # ** Show output image
     if showOutput and imageOut is not None:
       cv2.imshow("Output", imageOut)
-    if not keepRunning:
-      break  # if a FrameProcessor signals us to stop, we stop (break out of main processing loop)
     
     # ** Check if GUI is available
     if gui:

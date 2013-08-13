@@ -73,6 +73,16 @@ class Actor:
     for child in self.children:
       child.draw(transform)  # TODO do not draw if not enabled (e.g. an invisible actor should be enabled, but not visible)
   
+  def findActorByComponent(self, componentName):
+    if componentName in self.components:
+      return self
+    else:
+      for child in self.children:
+        targetActor = child.findActorByComponent(componentName)
+        if targetActor is not None:
+          return targetActor
+    return None
+  
   def toXMLElement(self):
     xmlElement = ET.Element(self.__class__.__name__)
     

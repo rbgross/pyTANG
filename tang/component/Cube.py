@@ -6,7 +6,7 @@ from Component import Component
 from Transform import Transform
 from Material import Material
 from Mesh import Mesh
-from vision.colortracking import Trackable, cube_vertices, cube_edges, cube_scale, cube_vertex_colors, colors_by_name
+from vision.colortracking import Trackable, ColorMarker, cube_vertices, cube_edges, cube_scale, cube_vertex_colors, colors_by_name
 
 class Cube(Component, Trackable):
   @classmethod
@@ -18,26 +18,33 @@ class Cube(Component, Trackable):
   
   def __init__(self, scale=cube_scale, actor=None):
     Component.__init__(self, actor)
+    Trackable.__init__(self)
     self.scale = scale
     
-    # Scale vertices of base cube
+    # Scale vertices of base cube, specify edges, and initialize list of markers
     self.vertices = cube_vertices * self.scale
     self.vertex_colors = cube_vertex_colors
-    self.vertex_scale = np.float32([3.0, 3.0, 3.0])
+    self.vertex_scale = np.float32([3.0, 3.0, 3.0])  # NOTE for rendering only
+    
     self.edges = cube_edges
-    self.edge_scale = np.float32([1.0, 1.0, 1.0])
-    self.edge_color = np.float32([0.8, 0.7, 0.5])
+    self.edge_scale = np.float32([1.0, 1.0, 1.0])  # NOTE for rendering only
+    self.edge_color = np.float32([0.8, 0.7, 0.5])  # NOTE for rendering only
     # TODO make some of these parameters come from XML
     
     # NOTE Mark generated child actors (corners and edges) as transient, to prevent them from being exported in XML
     
-    # Add spheres at cube corners (vertices) with appropriate color
+    # Add spheres at cube corners (vertices) with appropriate color; also add color markers
     for vertex, colorName in zip(self.vertices, self.vertex_colors):
       vertexActor = Actor(self.actor.renderer, isTransient=True)
       vertexActor.components['Transform'] = Transform(translation=vertex, scale=self.vertex_scale, actor=vertexActor)
       vertexActor.components['Material'] = Material(color=colors_by_name[colorName], actor=vertexActor)
       vertexActor.components['Mesh'] = Mesh.getMesh(src="SmallSphere.obj", actor=vertexActor)
       self.actor.children.append(vertexActor)
+      marker = ColorMarker(self, colorName)
+      marker.worldPos = vertex
+      self.markers.append(marker)
+    
+    print "Cube.__init__(): len(markers) =", len(self.markers)
     
     # Add edges
     for u, v in self.edges:

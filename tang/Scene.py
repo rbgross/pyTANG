@@ -29,6 +29,7 @@ class Scene:
         
         #self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
         self.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))
+        #self.readXML(self.context.getResourcePath('data', 'BP3D-FMA7088-heart.xml'))  # BodyParts3D heart model hierarchy
         self.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
         #self.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))
         #self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
@@ -82,8 +83,15 @@ class Scene:
     def draw(self):
         for actor in self.actors:
             if self.hideCube and 'Cube' in actor.components:  # logic: actor containing a Cube component is *the* cube
-              continue  # skip rendering the cube
+                continue  # skip rendering the cube
             actor.draw(self.transform)
+    
+    def findActorByComponent(self, componentName):
+        for actor in self.actors:
+            targetActor = actor.findActorByComponent(componentName)
+            if targetActor is not None:
+                return targetActor
+        return None
     
     def dump(self):
         print "Scene.dump(): Actors:-"

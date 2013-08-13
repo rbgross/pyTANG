@@ -157,7 +157,7 @@ class ColorFilterProcessor(FrameProcessor):
         if self.gui: cv2.imshow(filterName, self.masks[filterName])
       # TODO set output to bitwise OR of all these masks (?)
     
-    return True, self.imageOut
+    return self.imageOut
   
   def onKeyPress(self, key, keyChar=None):
     # Change current channel to H, S or V, or channel values
