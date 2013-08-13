@@ -4,7 +4,7 @@ from math import pi, hypot
 import numpy as np
 from collections import OrderedDict
 from Queue import PriorityQueue
-from itertools import permutations
+from itertools import permutations, combinations
 
 # CV imports
 import cv2
@@ -467,7 +467,7 @@ class CubeTracker(ColorMarkerTracker):
           continue  # not enough markers for this trackable
         
         # *** First try finding a face (most stable, but requires all 4 vertices of a face to be seen)
-        found = self.trackCubeMultiface(trackable, activeMarkers)
+        found = self.trackCubeMultiface2(trackable, activeMarkers)
         
         # *** Then try matching an arbitrary set of markers (at least 4)
         if not found: found = self.trackVerticesRansac(trackable, activeMarkers)
@@ -533,29 +533,24 @@ class CubeTracker(ColorMarkerTracker):
       self.logger.debug("\nretval: {}\nrvec: {}\ntvec: {}".format(retval, trackable.rvec, trackable.tvec))
   
   def trackCubeMultiface(self, trackable, activeMarkers):
-    # [Tracking method 2] Try to match *any* face of the cube that might be visible
+    # [Tracking method 2-1] Try to match *any* face of the cube that might be visible
     # * For each (named) cube face
     for name, face in cube_faces.iteritems():
       # ** Obtain face vertices, vertex colors, and vertex color to index mapping (NOTE color == tag)
       face_vertices = np.float32([trackable.vertices[vertex_idx] for vertex_idx in face])
+      face_markers = (trackable.markers[vertex_idx] for vertex_idx in face)
       face_vertex_colors = [cube_vertex_colors[vertex_idx] for vertex_idx in face]
       #print "face:", face, "\nface_vertices:", face_vertices, "\nface_vertex_colors:", face_vertex_colors
       face_vertex_idx_by_color = OrderedDict(zip(face_vertex_colors, range(len(face_vertex_colors))))
       #print "face_vertex_idx_by_color:", face_vertex_idx_by_color
       
-      '''
-      # ** Map blob centers to face vertex points
-      face_points = [None] * len(face)
-      for blob in self.blobs:
-        face_points[face_vertex_idx_by_color[blob.tag]] = blob.center  # NOTE last blob of a particular tag overwrites any previous blobs with same tag
-      '''
-      
       # ** Map blob centers to face vertex points, keeping a list of all candidate blobs for each vertex point
       face_points = [None] * len(face)
-      face_blobs = [[]] * len(face)
-      for blob in self.blobs:
-        face_blobs[face_vertex_idx_by_color[blob.tag]].append(blob)
-        face_points[face_vertex_idx_by_color[blob.tag]] = blob.center  # NOTE last blob of a particular tag overwrites any previous blobs with same tag; to get other blob centers, keep popping from face_blobs and copying in center
+      face_vertex_markers = [[]] * len(face)
+      for marker in face_markers:
+        if not marker.active: continue
+        face_vertex_markers[face_vertex_idx_by_color[marker.tag]].append(marker)
+        face_points[face_vertex_idx_by_color[marker.tag]] = marker.imagePos  # NOTE last marker of a particular tag overwrites any previous markers with same tag; to get other marker positions, keep popping from face_vertex_markers and copying in imagePos
       
       # ** Check if all face points have been found
       isFaceComplete = np.all([point is not None for point in face_points])
@@ -567,6 +562,8 @@ class CubeTracker(ColorMarkerTracker):
       face_points = np.float32(face_points)
       #print "face_points:\n{}".format(face_points)
       
+      # ** Iterate over all candidate face-marker mappings
+      # TODO use a different scheme to generate combinations; this one is flawed!
       haveCandidate = True
       while haveCandidate:
         self.logger.debug("Candidate face: {}".format(name))
@@ -583,15 +580,73 @@ class CubeTracker(ColorMarkerTracker):
         # *** Else try a different vertex-blob combination, if available
         haveCandidate = False
         for i in xrange(len(face_points)):
-          if len(face_blobs[i]) > 1:  # if there are more than one possible blobs still left
-            face_blobs[i].pop()  # first, remove the current one
-            face_points[i] = face_blobs[i][0].center  # then copy in next's center
+          if len(face_vertex_markers[i]) > 1:  # if there are more than one possible markers still left
+            face_vertex_markers[i].pop()  # first, remove the current one
+            face_points[i] = face_vertex_markers[i][0].imagePos  # then copy in next's position
             haveCandidate = True
             break
-        
-        # TODO use a different scheme to generate combinations; this one is flawed!
     
     return False
+  
+  def trackCubeMultiface2(self, trackable, activeMarkers):
+    # [Tracking method 2-2] Try to find *all* faces that are visible and use the "best"
+    
+    # * Iterate over all 4-element (ordered) subsets of activeMarkers
+    face_marker_seqs = []  # list of (name, face, marker_seq, face_points) tuples
+    marker_sets = list(combinations(activeMarkers, 4))
+    #self.logger.debug("len(marker_sets) = {}".format(len(marker_sets)))
+    #total_marker_seqs = 0
+    #valid_marker_seqs = 0
+    for marker_set in marker_sets:
+      if marker_set[0].tag == marker_set[1].tag or marker_set[0].tag == marker_set[2].tag or marker_set[0].tag == marker_set[3].tag or \
+         marker_set[1].tag == marker_set[2].tag or marker_set[1].tag == marker_set[3].tag or \
+         marker_set[2].tag == marker_set[3].tag:
+         continue  # skip sets with duplicate colors (NOTE this assumes each face has 4 distinct colors)
+      marker_seqs = list(permutations(marker_set, 4))
+      #total_marker_seqs += len(marker_seqs)
+      for marker_seq in marker_seqs:
+        for name, face in cube_faces.iteritems():
+          if np.any([marker.tag != cube_vertex_colors[vertex_idx] for marker, vertex_idx in zip(marker_seq, face)]):
+            continue  # marker tags don't match face vertex colors
+          face_points = np.float32([marker.imagePos for marker in marker_seq])
+          if self.isCubeFaceValid(name, face_points):
+            #valid_marker_seqs += 1
+            face_marker_seqs.append((name, face, marker_seq, face_points))
+    
+    #self.logger.debug("total_marker_seqs = {}, valid_marker_seqs = {}".format(total_marker_seqs, valid_marker_seqs))
+    if not face_marker_seqs:
+      self.logger.debug("No matching (face, marker-sequence) pairs")
+      return False
+    
+    transforms = []  # TODO make this a named tuple
+    for name, face, marker_seq, face_points in face_marker_seqs:
+      face_vertices = np.float32([trackable.vertices[vertex_idx] for vertex_idx in face])
+      retval, rvec, tvec = cv2.solvePnP(face_vertices, face_points, camera_params, dist_coeffs)
+      if retval:
+        transforms.append((name, rvec, tvec))
+    
+    if not transforms:
+      self.logger.debug("No valid transforms could be computed")
+      return False
+    
+    #self.logger.debug("{} transforms:\n{}".format(len(transforms), "\n".join(str(transform) for transform in transforms)))
+    final_transform = transforms[0]
+    if len(transforms) > 1:
+      mean_tvec = np.mean([tvec for _, _, tvec in transforms], axis=0)
+      #self.logger.debug("mean_tvec = {} ({} transforms)".format(mean_tvec, len(transforms)))
+      consistent_transforms = [transform for transform in transforms if np.linalg.norm(transform[2] - mean_tvec, ord=2) < 10.0]
+      #self.logger.debug("{} consistent transforms:\n{}".format(len(consistent_transforms), "\n".join(str(transform) for transform in consistent_transforms)))
+      if len(consistent_transforms) == 0:
+        if self.active:
+          final_transform = sorted(transforms, key=lambda transform: np.linalg.norm(transform[2] - self.tvec, ord=2))[0]
+      else:
+        final_transform = ("/".join(transform[0] for transform in consistent_transforms), consistent_transforms[0][1], consistent_transforms[0][2])  # use rvec from the first consistent transform, and mean tvec (?)
+    
+    self.logger.debug("{} candidate transforms, final_transform:\n{}".format(len(transforms), "\n".join(str(x) for x in final_transform)))
+    trackable.rvec = final_transform[1]
+    trackable.tvec = final_transform[2]
+    trackable.visible = True
+    return True
   
   def isCubeFaceValid(self, face_name, face_points):
     # * Verify that these face points satisfy a known topographical structure (order)
@@ -747,7 +802,7 @@ class CubeTracker(ColorMarkerTracker):
       tvec_diff_origin = np.linalg.norm(tvec - self.cube_origin, ord=2)
       tvec_diff = np.linalg.norm(tvec - self.tvec, ord=2)
       self.logger.debug("Dist. from origin: {}, from last pos.: {}".format(tvec_diff_origin, tvec_diff))
-      if tvec_diff_origin > 30.0 or tvec_diff > 15.0:  # TODO check rvec_diff as well? (be careful with angle wraparound)
+      if tvec_diff_origin > 30.0 or tvec_diff > 5.0:  # TODO check rvec_diff as well? (be careful with angle wraparound)
         self.logger.debug("Failed origin and continuity check")
         return False
     
