@@ -23,12 +23,14 @@ class Renderer:
 
         self.colorShader = Shader(self.context.getResourcePath('shaders', 'ADS.vert'), self.context.getResourcePath('shaders', 'ADS.frag'))
 
-        self.cameraMatrix = np.dot(hm.perspective(hm.identity(), 35, float(self.windowWidth) / self.windowHeight, 1.0, 1000.0), hm.lookat(hm.identity(), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 1.0, 1.0], dtype = np.float32), np.array([0.0, -1.0, 0.0, 1.0], dtype = np.float32)))
+        self.proj = hm.perspective(hm.identity(), 35, float(self.windowWidth) / self.windowHeight, 1.0, 1000.0)
+        self.view = hm.lookat(hm.identity(), np.array([0.0, 0.0, 0.0, 1.0], dtype = np.float32), np.array([0.0, 0.0, 1.0, 1.0], dtype = np.float32), np.array([0.0, -1.0, 0.0, 1.0], dtype = np.float32))
+        self.cameraMatrix = np.dot(self.proj, self.view)
         self.setCameraMatrix(self.cameraMatrix)
 
     def setCameraMatrix(self, cameraMatrix):
-        self.colorShader.setUniformMat4('view', hm.identity())
-        self.colorShader.setUniformMat4('proj', cameraMatrix)
+        self.colorShader.setUniformMat4('view', self.view)
+        self.colorShader.setUniformMat4('proj', self.proj)
 
     def setModelMatrix(self, model):
         self.colorShader.setUniformMat4('model', model)

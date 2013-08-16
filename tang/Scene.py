@@ -30,8 +30,8 @@ class Scene:
         #self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))
         self.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))
         #self.readXML(self.context.getResourcePath('data', 'BP3D-FMA7088-heart.xml'))  # BodyParts3D heart model hierarchy
-        self.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
-        #self.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))
+        #self.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
+        self.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))
         #self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
         print "Scene.__init__(): Loaded {} top-level actor(s)".format(len(self.actors))
         #self.dump()

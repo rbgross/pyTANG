@@ -19,9 +19,9 @@ class Controller:
         self.timer = time.clock()
         
         #self.wheelPosition = glfw.GetMouseWheel()
-        #self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
-        #self.curMouseX = self.oldMouseX
-        #self.curMouseY = self.oldMouseY
+        self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
+        self.curMouseX = self.oldMouseX
+        self.curMouseY = self.oldMouseY
         self.leftPressed = False
         self.rightPressed = False
 
@@ -41,6 +41,8 @@ class Controller:
             print "Initializing manual control"
             self.manualControl = True
             self.context.scene.transform = hm.translation(hm.identity(), [0, 0, 60])
+            mouseX, mouseY = glfw.GetMousePos()
+            self.calcArcBallVector(mouseX, mouseY)
 
         if glfw.GetKey('P'):
             print "Stopping manual control"
@@ -87,34 +89,35 @@ class Controller:
         if not glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = False
 
-        #if not self.rightPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_RIGHT):
-            #self.rightPressed = True
-            #self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
-            #self.curMouseX = self.oldMouseX
-            #self.curMouseY = self.oldMouseY
+        if not self.rightPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_RIGHT):
+            self.rightPressed = True
+            self.oldMouseX, self.oldMouseY = glfw.GetMousePos()
+            self.curMouseX = self.oldMouseX
+            self.curMouseY = self.oldMouseY
 
-        #if not glfw.GetMouseButton(glfw.MOUSE_BUTTON_RIGHT):
-            #self.rightPressed = False
+        if not glfw.GetMouseButton(glfw.MOUSE_BUTTON_RIGHT):
+            self.rightPressed = False
 
-        #if self.rightPressed:
-            #self.curMouseX, self.curMouseY = glfw.GetMousePos()
-            #if self.curMouseX != self.oldMouseX or self.curMouseY != self.oldMouseY:
-                #oldVec = self.calcArcBallVector(self.oldMouseX, self.oldMouseY)
-                #curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY)
-                #angle = math.acos(min(1.0, np.dot(oldVec, curVec)))
-                #cameraAxis = np.cross(oldVec, curVec)
-                #cameraToObjectCoords = np.linalg.inv(np.dot(self.view[:-1,:-1], self.context.scene.transform[:-1,:-1]))
-                #cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis)
-                #self.context.scene.transform = hm.rotation(self.context.scene.transform, math.degrees(angle), cameraAxisObjectCoords)
-                #self.oldMouseX = self.curMouseX
-                #self.oldMouseY = self.curMouseY
+        if self.rightPressed: #OK
+            self.curMouseX, self.curMouseY = glfw.GetMousePos() #OK
+            if self.curMouseX != self.oldMouseX or self.curMouseY != self.oldMouseY: #OK
+                oldVec = self.calcArcBallVector(self.oldMouseX, self.oldMouseY) #OK
+                curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY) #OK
+                angle = math.acos(min(1.0, np.dot(oldVec, curVec))) #OK
+                cameraAxis = np.cross(oldVec, curVec) #OK
+                cameraToObjectCoords = np.linalg.inv(np.dot(self.context.renderer.view[:-1,:-1], self.context.scene.transform[:-1,:-1])) #???
+                cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis) #OK
+                self.context.scene.transform = hm.rotation(self.context.scene.transform, math.degrees(angle), cameraAxisObjectCoords) #OK
+                self.oldMouseX = self.curMouseX #OK
+                self.oldMouseY = self.curMouseY #OK
 
-    #def calcArcBallVector(self, mouseX, mouseY):
-        #vec = np.array([float(mouseX) / self.windowWidth * 2 - 1.0, float(mouseY) / self.windowHeight * 2 - 1.0, 0], dtype = np.float32)
-        #vec[1] = -vec[1]
-        #distSquared = vec[0] * vec[0] + vec[1] * vec[1]
-        #if distSquared <= 1.0:
-            #vec[2] = math.sqrt(1.0 - distSquared)
-        #else:
-            #vec *= 1 / np.linalg.norm(vec)
-        #return vec
+    def calcArcBallVector(self, mouseX, mouseY):
+        vec = np.array([float(mouseX) / 640. * 2. - 1.0, float(mouseY) / 480. * 2. - 1.0, 0.], dtype = np.float32) #OK
+        vec[1] = -vec[1] #OK
+        distSquared = vec[0] * vec[0] + vec[1] * vec[1] #OK
+        if distSquared <= 1.0: #OK
+            vec[2] = math.sqrt(1.0 - distSquared) #OK
+        else: #OK   
+            vec[0] = vec[0] / math.sqrt(distSquared) #OK
+            vec[1] = vec[1] / math.sqrt(distSquared) #OK
+        return vec #OK

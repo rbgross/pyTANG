@@ -44,6 +44,7 @@ class Main:
   def __init__(self):
 
     #sys.argv = ['Main.py', '../res', '../res/videos/test-10.mpeg']
+    self.experimentalMode = False
     
     # * Initialize global context (command line args are parsed by Context)
     self.context = Context.createInstance(sys.argv)
@@ -105,7 +106,8 @@ class Main:
     while self.context.renderer.windowOpen():
       self.context.controller.pollInput()
       self.context.renderer.startDraw()
-      imageBlitter.render()
+      if not self.experimentalMode:
+        imageBlitter.render()
       self.context.scene.draw()
       self.context.renderer.endDraw()
     
