@@ -3,8 +3,8 @@
 """
 Records a video from the default camera for a specified duration using OpenCV.
 Usage:
-  camrecord.py [gui|nogui [<duration> [<video_filename>]]]
-Video file: <video_filename> (default: video.mpeg, 10 secs.)
+  camrecord.py [gui|nogui [<duration> [<video_filename> [<start_after>]]]]
+Video file: <video_filename> (default: video_filename = video.mpeg, duration = 10 secs., start_after = 0 secs.)
 Video data file (frame count, recorded duration, avg. fps): <video_filename>.dat
 """
 
@@ -33,6 +33,7 @@ print "Camera frame size set to {width}x{height} (result: {result_width}, {resul
 gui = True
 duration = defaultDuration
 videoFilename = "video.mpeg"
+startAfter = 0.0  # sec
 video = None
 dat = None
 
@@ -44,6 +45,9 @@ if len(sys.argv) > 2:
 
 if len(sys.argv) > 3:
   videoFilename = sys.argv[3]
+
+if len(sys.argv) > 4:
+  startAfter = float(sys.argv[4])
 
 if videoFilename is not None:
   print "Opening video file \"" + videoFilename + "\"..."
@@ -60,7 +64,8 @@ if video is None:
   print "Video file not specified or cannot be opened (check usage); aborting..."
   sys.exit(1)
 
-print "Main loop (GUI: {0}, duration: {1} secs., video file: {2})...".format(gui, duration, videoFilename)
+print "Main loop (GUI: {0}, duration: {1} secs. (start after {2} secs.), video file: {3})...".format(gui, duration, startAfter, videoFilename)
+isWaiting = (startAfter > 0.0)
 frameCount = 0
 fps = 0.0
 timeStart = cv2.getTickCount() / cv2.getTickFrequency()
@@ -77,8 +82,19 @@ while True:
   if frame is None:
     break
   
-  if video is not None:
-    video.write(frame)
+  if isWaiting:
+    if timeNow >= startAfter:
+      timeStart += timeNow
+      timeLast = timeNow = 0.0
+      frameCount = 0
+      fps = 0.0
+      isWaiting = False
+    else:
+      if gui:
+        cv2.putText(frame, "{:.2f}".format(startAfter - timeNow), (frame.shape[1] - 80, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 255), 2)
+  else:
+    if video is not None:
+      video.write(frame)
   
   if gui:
     cv2.imshow("Camera", frame)

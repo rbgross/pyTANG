@@ -5,9 +5,11 @@ import numpy as np
 from collections import OrderedDict
 from Queue import PriorityQueue
 from itertools import permutations, combinations
+import logging
 
 # CV imports
 import cv2
+import cv2.cv as cv
 
 # Custom imports
 from base import FrameProcessor
@@ -19,7 +21,7 @@ from input import run
 doRenderContours = True
 doRenderBlobs = False
 doRenderMarkers = True
-doRenderCube = True
+doRenderCube = False
 doRenderFace = True
 doRenderVolume = False
 
@@ -43,18 +45,23 @@ dist_coeffs = np.zeros(5)  # distortion coefficients only matter for high accura
 
 # Bounding box/cube
 cube_vertices = np.float32(
-  [[ -1, -1, -1],
-   [  1, -1, -1],
-   [  1,  1, -1],
-   [ -1,  1, -1],
-   [ -1, -1,  1],
-   [  1, -1,  1],
-   [  1,  1,  1],
-   [ -1,  1,  1]])
+  [[-1, -1, -1],
+   [ 1, -1, -1],
+   [ 1,  1, -1],
+   [-1,  1, -1],
+   [-1, -1,  1],
+   [ 1, -1,  1],
+   [ 1,  1,  1],
+   [-1,  1,  1]])
 
 cube_edges = [(0, 1), (1, 2), (2, 3), (3, 0),
               (4, 5), (5, 6), (6, 7), (7, 4),
               (0, 4), (1, 5), (2, 6), (3, 7)]
+
+cube_adj = np.zeros(shape=(len(cube_vertices), len(cube_vertices)), dtype=np.uint8)
+for u, v in cube_edges:
+  cube_adj[u, v] = 1
+  cube_adj[v, u] = 1
 
 cube_faces = OrderedDict(
   [('front' , (0, 3, 2, 1)),
@@ -91,7 +98,7 @@ for tag, vertex in square_vertex_by_tag.iteritems():
 # Color filters
 redFilter = HSVFilter(np.array([175, 100, 75], np.uint8), np.array([5, 255, 255], np.uint8))
 blueFilter = HSVFilter(np.array([100, 100, 75], np.uint8), np.array([115, 255, 255], np.uint8))
-orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([19, 255, 255], np.uint8))
+orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([15, 255, 255], np.uint8))
 #greenFilter = HSVFilter(np.array([70, 100, 75], np.uint8), np.array([90, 255, 255], np.uint8))
 greenFilter = HSVFilter(np.array([60, 64, 32], np.uint8), np.array([90, 255, 255], np.uint8))  # dark green
 yellowFilter = HSVFilter(np.array([20, 85, 150], np.uint8), np.array([44, 255, 255], np.uint8))
@@ -142,7 +149,7 @@ class Marker:
         #cv2.circle(imageOut, lastImagePos_int, 2, (128, 0, 0), -1)
       cv2.circle(imageOut, imagePos_int, 2, (255, 0, 0), -1)
       if drawTag:
-        cv2.putText(imageOut, self.tag, imagePos_int, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
+        cv2.putText(imageOut, self.tag, (imagePos_int[0] + 15, imagePos_int[1] + 15), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 0), 2)
 
 
 class ColorMarker(Marker):
@@ -257,34 +264,6 @@ class ColorMarkerTracker(FrameProcessor):
       
       # ** Match markers with blobs
       self.matchMarkersWithBlobs(self.markers, self.blobs, 100*100)
-      '''
-      for marker in self.markers:
-        if marker.active:
-          # *** For active markers, use their last position as a search constraint/hint
-          #bestBlob = self.getNearestBlob(marker.tag, marker.imagePos, 100)  # specify a max dist to rule out distant false-positives
-          #bestBlobs = self.getBlobsByDistance(marker.tag, marker.imagePos)  # returns list of Blob objects
-          bestBlobs = self.getBlobsByDist(marker.tag, marker.imagePos, 100)  # returns (<dist>, <Blob>) pairs
-          bestBlobs = [blob for dist, blob in bestBlobs]
-          if bestBlobs:  #if bestBlob is not None:
-            self.logger.debug("Marker *{}*: {} matching blob(s)".format(marker.tag, len(bestBlobs)))
-            marker.blobs = bestBlobs
-            
-            bestBlob = bestBlobs[0]
-            #bestDist, bestBlob = bestBlobs[0]  # NOTE getBlobsByDist() returns (dist, blob tuple)
-            marker.updateImagePos(bestBlob.center)
-            self.blobs.remove(bestBlob)  # only one marker per blob
-          else:
-            marker.updateImagePos(None)
-            marker.active = False  # TODO only mark inactive when blob hasn't been seen for a while
-        else:
-          # *** For inactive markers, try to find the best possible match (TODO retain multiple close matches, and disambiguate later based on whichever combination makes the most *sense*)
-          bestBlob = self.getBlob(marker.tag)
-          if bestBlob is not None:
-            marker.blobs = [bestBlob]
-            marker.updateImagePos(bestBlob.center)
-            #self.blobs.remove(bestBlob)  # only one marker per blob
-            marker.active = True
-      '''
       
       # ** Report active markers
       self.logger.debug("{} active markers: {}".format(len(self.markers), ", ".join((marker.tag for marker in self.markers if marker.active))))
@@ -295,7 +274,37 @@ class ColorMarkerTracker(FrameProcessor):
     return self.imageOut
   
   def matchMarkersWithBlobs(self, markers, blobs, maxDistSq=np.inf):
-    # Based on Nearest-neighbor linker by Jean-Yves Tinevez
+    '''
+    # [Matching method 1] Naive method
+    for marker in self.markers:
+      if marker.active:
+        # *** For active markers, use their last position as a search constraint/hint
+        #bestBlob = self.getNearestBlob(marker.tag, marker.imagePos, 100)  # specify a max dist to rule out distant false-positives
+        #bestBlobs = self.getBlobsByDistance(marker.tag, marker.imagePos)  # returns list of Blob objects
+        bestBlobs = self.getBlobsByDist(marker.tag, marker.imagePos, 100)  # returns (<dist>, <Blob>) pairs
+        bestBlobs = [blob for dist, blob in bestBlobs]
+        if bestBlobs:  #if bestBlob is not None:
+          self.logger.debug("Marker *{}*: {} matching blob(s)".format(marker.tag, len(bestBlobs)))
+          marker.blobs = bestBlobs
+          
+          bestBlob = bestBlobs[0]
+          #bestDist, bestBlob = bestBlobs[0]  # NOTE getBlobsByDist() returns (dist, blob tuple)
+          marker.updateImagePos(bestBlob.center)
+          self.blobs.remove(bestBlob)  # only one marker per blob
+        else:
+          marker.updateImagePos(None)
+          marker.active = False  # TODO only mark inactive when blob hasn't been seen for a while
+      else:
+        # *** For inactive markers, try to find the best possible match (TODO retain multiple close matches, and disambiguate later based on whichever combination makes the most *sense*)
+        bestBlob = self.getBlob(marker.tag)
+        if bestBlob is not None:
+          marker.blobs = [bestBlob]
+          marker.updateImagePos(bestBlob.center)
+          #self.blobs.remove(bestBlob)  # only one marker per blob
+          marker.active = True
+    '''
+    
+    # [Matching method 2] Based on Nearest-neighbor linker by Jean-Yves Tinevez
     # Source: http://www.mathworks.com/matlabcentral/fileexchange/33772-nearest-neighbor-linker
     
     # * Initialize distance matrix
@@ -303,6 +312,7 @@ class ColorMarkerTracker(FrameProcessor):
     D.fill(np.inf)
     
     # * Build up distance matrix, only for valid matches (i.e. marker and blob must have same tag)
+    # TODO use richer features, such as color histogram of the image region
     for i in xrange(len(markers)):
       #self.logger.debug("[Distance matrix loop] i: {}".format(i))
       markers[i].active = False
@@ -385,14 +395,19 @@ class ColorMarkerTracker(FrameProcessor):
 
 
 class CubeTracker(ColorMarkerTracker):
-  inactiveThreshold = 2.0  # how many seconds to allow the cube to remain invisible before marking it inactive
+  inactiveThreshold = 1.2  # how many seconds to allow the cube to remain invisible before marking it inactive
   cube_origin = np.float32([[0.0], [0.0], [70.0]])  # expected cube origin
+  max_line_blob_distance_sq = 50 * 50  # squared distance between line end points and blob centers for a match
   
   def __init__(self, options):
     ColorMarkerTracker.__init__(self, options)
   
   def initialize(self, imageIn, timeNow):
     ColorMarkerTracker.initialize(self, imageIn, timeNow)
+    
+    # * Initialize members needed for cube-tracking
+    #self.cubeEdgeFilter = HSVFilter(np.array([0, 40, 100], np.uint8), np.array([179, 100, 255], np.uint8))  # bare wooden sticks
+    self.cubeEdgeFilter = HSVFilter(np.array([0, 0, 200], np.uint8), np.array([179, 30, 255], np.uint8))  # white sticks
     
     # * Initialize 3D projection params
     self.rvec = np.zeros((3, 1), dtype=np.float32)
@@ -463,14 +478,18 @@ class CubeTracker(ColorMarkerTracker):
       
       # ** If this trackable is a cube, use specialized tracking method
       if trackable.__class__.__name__ == 'Cube':
+        found = False
+        # *** Try finding the cube using a combination of observed blobs and line segments (connecting edges)
+        #if not found and len(self.blobs) >= 4: found = self.trackCubeWithEdges(trackable, activeMarkers)  # NOTE does not use markers, uses blobs directly instead
+        
         if len(activeMarkers) < 4:
           continue  # not enough markers for this trackable
         
-        # *** First try finding a face (most stable, but requires all 4 vertices of a face to be seen)
-        found = self.trackCubeMultiface2(trackable, activeMarkers)
+        # *** Try finding the cube using faces (most stable, but requires all 4 vertices of a face to be seen)
+        if not found: found = self.trackCubeMultiface2(trackable, activeMarkers)  # NOTE uses activeMarkers
         
-        # *** Then try matching an arbitrary set of markers (at least 4)
-        if not found: found = self.trackVerticesRansac(trackable, activeMarkers)
+        # *** Try matching an arbitrary set of markers (at least 4)
+        if not found: found = self.trackVerticesRansac(trackable, activeMarkers)  # NOTE uses activeMarkers
         
         # *** If cube is visible, copy rotation and translation vectors for global use
         if trackable.visible:  # alt.: found
@@ -617,6 +636,8 @@ class CubeTracker(ColorMarkerTracker):
     if not face_marker_seqs:
       self.logger.debug("No matching (face, marker-sequence) pairs")
       return False
+    
+    # TODO compute scores for different faces based on whether there are edge pixels between vertices where expected (and what fraction of total length); also after reprojecting remaining points, whether actual image pixels match in color
     
     transforms = []  # TODO make this a named tuple
     for name, face, marker_seq, face_points in face_marker_seqs:
@@ -785,15 +806,178 @@ class CubeTracker(ColorMarkerTracker):
     
     # * Find rotation and translation vectors from 3D-2D point correspondences
     self.logger.debug("Input:-\nworldPositions:\n{}\nimagePositions:\n{}".format(worldPositions, imagePositions))
-    trackable.rvec, trackable.tvec, inliers = cv2.solvePnPRansac(worldPositions, imagePositions, camera_params, dist_coeffs, trackable.rvec, trackable.tvec, useExtrinsicGuess = trackable.visible)
-    #self.logger.debug("Transform:-\nrvec:\n{}\ntvec:\n{}\ninliers:\n{}".format(trackable.rvec, trackable.tvec, inliers))
+    rvec, tvec, inliers = cv2.solvePnPRansac(worldPositions, imagePositions, camera_params, dist_coeffs, trackable.rvec, trackable.tvec, useExtrinsicGuess = trackable.visible)
+    #self.logger.debug("Transform:-\nrvec:\n{}\ntvec:\n{}\ninliers:\n{}".format(rvec, tvec, inliers))
     
     # * If a valid transform is found, mark trackable as visible
-    if trackable.rvec is not None and trackable.tvec is not None and inliers is not None:
+    if rvec is not None and tvec is not None and inliers is not None:
+      trackable.rvec = rvec
+      trackable.tvec = tvec
       trackable.visible = True
       return True
     
     return False
+  
+  def trackCubeWithEdges(self, trackable, activeMarkers):
+    # NOTE This method directly uses self.blobs and trackable.vertices instead of trackable.markers or activeMarkers
+    
+    # * Find edge pixels in the image by applying an appropriate HSV filter
+    edgeMask = self.cubeEdgeFilter.apply(self.imageHSV)
+    if self.gui: cv2.imshow("edge", edgeMask)
+    edgeMask_img = cv.fromarray(edgeMask)  # cv.LineIterator() needs an IplImage/CvMat instead of a numpy array
+    
+    '''
+    # * Find line segments in resulting binary edge mask
+    lines = cv2.HoughLinesP(edgeMask, 5, np.radians(5.0), 100, minLineLength=100, maxLineGap=10)
+    if lines is None:
+      self.logger.info("No lines detected; bailing out")
+      return False
+    lines = lines[0]  # for some reason cv2.HoughLinesP() returns a numpy ndarray with shape: (1, <#lines>, 4)
+    self.logger.info("{} line(s) detected".format(lines.shape[0]))
+    if self.gui:
+      for i in xrange(lines.shape[0]):
+        line = lines[i]
+        cv2.line(self.imageOut, (line[0], line[1]), (line[2], line[3]), (128, 0, 0), 1)
+    '''
+    
+    '''
+    # * Explore all possible assignments of blobs to markers and see which ones maintain connectivity
+    blobs = list(self.blobs)
+    if len(self.blobs) < len(trackable.vertices):
+      blobs.extend([None] * (len(trackable.vertices) - len(self.blobs)))  # pad with None's
+    
+    blob_seqs = list(permutations(blobs, len(trackable.vertices)))
+    blob_seq_scores = np.zeros(len(blob_seqs), dtype=np.float32)
+    for blob_seq, blob_seq_score in zip(blob_seqs, blob_seq_scores):
+      #self.logger.debug("Evaluating blob seq (len = {}): {}".format(len(blob_seq), blob_seq))
+      self.logger.debug("Evaluating seq (len = {}): {}".format(len(blob_seq), ", ".join(blob.tag if blob is not None else "-" for blob in blob_seq)))
+      
+      # ** Check if this sequence is a possible match
+      badSeq = False
+      for j in xrange(len(blob_seq)):
+        if blob_seq[j] is not None and blob_seq[j].tag != cube_vertex_colors[j]:
+            badSeq = True
+            self.logger.debug("Bad sequence: blob.tag = {}, cube_vertex_color = {}".format(blob_seq[j].tag, cube_vertex_colors[j]))
+            break
+      if badSeq: continue
+      
+      # ** Compute a connectivity score for this blob sequence
+      for u, v in trackable.edges:
+        self.logger.debug("Edge: ({}, {})".format(u, v))
+        if blob_seq[u] is None or blob_seq[v] is None: continue  # we have no matching blobs for this vertex pair
+        
+        uPos = blob_seq[u].center
+        vPos = blob_seq[v].center
+        for line in lines:
+          if np.inner(line[0:2] - uPos, line[0:2] - uPos) < 20 and np.inner(line[2:4] - vPos, line[2:4] - vPos) < 20 or \
+             np.inner(line[0:2] - vPos, line[0:2] - vPos) < 20 and np.inner(line[2:4] - uPos, line[2:4] - uPos) < 20:
+            blob_seq_score += 1
+            if self.gui: cv2.line(self.imageOut, (line[0], line[1]), (line[2], line[3]), (255, 0, 255), 2)
+            break  # one match found, that's good enough
+    
+    # ** Use computed blob sequence scores to pick best one
+    best_seq_idx = np.argmax(blob_seq_scores)
+    best_seq_score = blob_seq_scores[best_seq_idx]
+    best_seq = blob_seqs[best_seq_idx]
+    self.logger.info("Best blob sequence (score = {}): {}".format(best_seq_score, ", ".join(blob.tag if blob is not None else "-" for blob in best_seq)))
+    '''
+    
+    '''
+    # * Obtain blob connectivity graph using detected line segments
+    blob_edges = []
+    blob_adj = np.zeros(shape=(len(self.blobs), len(self.blobs)), dtype=np.uint8)  # adj. matrix representing blob connectivity
+    for i in xrange(blob_adj.shape[0]):
+      for j in xrange(i+1, blob_adj.shape[1]):
+        for line in lines:
+          dist_linePt1_i = np.inner(line[0:2] - self.blobs[i].center, line[0:2] - self.blobs[i].center)
+          dist_linePt2_j = np.inner(line[2:4] - self.blobs[j].center, line[2:4] - self.blobs[j].center)
+          dist_linePt1_j = np.inner(line[0:2] - self.blobs[j].center, line[0:2] - self.blobs[j].center)
+          dist_linePt2_i = np.inner(line[2:4] - self.blobs[i].center, line[2:4] - self.blobs[i].center)
+          #self.logger.debug("Line dists.: {}, {}, {}, {}".format(dist_linePt1_i, dist_linePt2_j, dist_linePt1_j, dist_linePt2_i))
+          if (dist_linePt1_i < self.max_line_blob_distance_sq and dist_linePt2_j < self.max_line_blob_distance_sq) or \
+             (dist_linePt1_j < self.max_line_blob_distance_sq and dist_linePt2_i < self.max_line_blob_distance_sq):
+            blob_edges.append((i, j))
+            blob_adj[i, j] = 1
+            blob_adj[j, i] = 1
+            #if self.gui: cv2.line(self.imageOut, (line[0], line[1]), (line[2], line[3]), (255, 0, 255), 2)  # show actual line segments
+            if self.gui: cv2.line(self.imageOut, self.blobs[i].center_int, self.blobs[j].center_int, (255, 0, 255), 2)  # show blob links
+            break  # one match found, that's good enough
+    '''
+    
+    # * Obtain blob connectivity graph by tracing a line between pairs of blobs and studying the edge mask
+    blob_edges = []
+    blob_adj = np.zeros(shape=(len(self.blobs), len(self.blobs)), dtype=np.uint8)  # adj. matrix representing blob connectivity
+    for i in xrange(blob_adj.shape[0]):
+      for j in xrange(i+1, blob_adj.shape[1]):
+        # ** For each blob pair, sample edgeMask pixels along the line connecting their centers, and find the sum (count)
+        li = cv.InitLineIterator(edgeMask_img, self.blobs[i].center_int, self.blobs[j].center_int)
+        count = sum(li) / 255
+        dist = hypot(self.blobs[j].center[0] - self.blobs[i].center[0], self.blobs[j].center[1] - self.blobs[i].center[1])
+        self.logger.debug("Line count ({} - {}) = {}, dist = {}".format(i, j, count, dist))
+        
+        # ** If count is at least some fraction of total distance between the centers, then there must be an edge there
+        if count / dist >= 0.6:
+          blob_edges.append((i, j))
+          blob_adj[i, j] = 1
+          blob_adj[j, i] = 1
+          if self.gui: cv2.line(self.imageOut, self.blobs[i].center_int, self.blobs[j].center_int, (255, 0, 255), 2)
+    
+    # * Compute subgraph isomorphisms using blob adjacency matrix and cube adjacency matrix (as reference)
+    blob_labels = [blob.tag for blob in self.blobs]
+    self.logger.debug("Blob adjacency matrix:-\n{}".format(formatMatrix(blob_adj, blob_labels, blob_labels)))
+    self.logger.debug("Cube adjacency matrix:-\n{}".format(formatMatrix(cube_adj, cube_vertex_colors, cube_vertex_colors)))
+    
+    algo = SubgraphIsomorphisms(blob_adj, blob_labels, cube_adj, cube_vertex_colors)
+    isomorphisms = algo.run()
+    if not isomorphisms:
+      self.logger.info("No isomorphisms found; bailing out")
+      return False
+    self.logger.info("Found {} isomorphism(s)".format(len(isomorphisms)))
+    if len(isomorphisms) > 1:
+      self.logger.info("Isomorphisms:-\n" + "\n".join(formatMatrix(iso, blob_labels, cube_vertex_colors) for iso in isomorphisms))
+    
+    # * Select the best isomorphism (TODO find good criteria/use all isomorphisms and perform a fitness test later)
+    mapping = isomorphisms[0]  # which one to use? why, the first one, of course!
+    self.logger.info("Chosen isomorphism ({}x{}):\n{}".format(mapping.shape[0], mapping.shape[1], formatMatrix(mapping, blob_labels, cube_vertex_colors)))
+    
+    # * Using this blob-vertex mapping, extract index-matched object and image positions
+    worldPositions = []
+    imagePositions = []
+    for i in xrange(len(self.blobs)):
+      for j in xrange(len(trackable.vertices)):
+        if mapping[i, j] == 1:
+          worldPositions.append(trackable.vertices[j])
+          imagePositions.append(self.blobs[i].center)
+          if self.gui: cv2.putText(self.imageOut, str(j), self.blobs[i].center_int, cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 0, 0), 2)
+    worldPositions = np.float32(worldPositions)
+    imagePositions = np.float32(imagePositions)
+    
+    if len(worldPositions) < 4:
+      self.logger.info("Not enough 3D-2D point correspondences; bailing out")
+      return False
+    
+    # * Find rotation and translation vectors from 3D-2D point correspondences
+    self.logger.info("Input:-\nworldPositions:\n{}\nimagePositions:\n{}".format(worldPositions, imagePositions))
+    # ** No RANSAC scheme
+    retval, trackable.rvec, trackable.tvec = cv2.solvePnP(worldPositions, imagePositions, camera_params, dist_coeffs, useExtrinsicGuess = trackable.visible)
+    self.logger.info("Transform (retval = {}):-\nrvec:\n{}\ntvec:\n{}".format(retval, trackable.rvec, trackable.tvec))
+    trackable.visible = True
+    return True
+    
+    '''
+    # ** RANSAC scheme
+    rvec, tvec, inliers = cv2.solvePnPRansac(worldPositions, imagePositions, camera_params, dist_coeffs, trackable.rvec, trackable.tvec, useExtrinsicGuess = trackable.visible)
+    #self.logger.debug("Transform:-\nrvec:\n{}\ntvec:\n{}\ninliers:\n{}".format(rvec, tvec, inliers))
+    
+    # * If a valid transform is found, mark trackable as visible
+    if rvec is not None and tvec is not None and inliers is not None:
+      trackable.rvec = rvec
+      trackable.tvec = tvec
+      trackable.visible = True
+      return True
+    
+    return False
+    '''
   
   def updateTransform(self, rvec, tvec):
     #self.logger.debug("Transform:-\nrvec:\n{}\ntvec:\n{}".format(rvec, tvec))
@@ -809,6 +993,115 @@ class CubeTracker(ColorMarkerTracker):
     self.rvec = rvec.copy()
     self.tvec = tvec.copy()
     return True
+
+
+class SubgraphIsomorphisms:
+  """Given graphs as adjaceny matrices A and B (and corresponding vertex labels), find graph A in subgraphs of B."""
+  # Based on: Ullmann, J. R., An Algorithm for Subgraph Isomorphism, JACM, Vol. 23, Iss. 1, pp. 31--42, 1976.
+  #   Simple Enumeration algorithm (brute force)
+  
+  def __init__(self, A, A_labels, B, B_labels):
+    # * Copy in matrices and labels
+    self.A = A
+    self.A_labels = A_labels
+    self.B = B
+    self.B_labels = B_labels
+    self.logger = logging.getLogger(self.__class__.__name__)
+  
+  def run(self):
+    # * Initialize isomorphism matrix by setting all possible mappings to 1
+    self.pA = self.A.shape[0]  # number of "points" (vertices) in A
+    self.pB = self.B.shape[0]  # number of "points" (vertices) in B
+    self.M0 = np.zeros(shape=(self.pA, self.pB), dtype=np.uint8)
+    for i in xrange(self.pA):
+      for j in xrange(self.pB):
+        if self.A_labels[i] == self.B_labels[j] and np.sum(self.B[:,j]) >= np.sum(self.A[:,i]):  # label and degree check
+          self.M0[i, j] = 1
+    self.logger.debug("Initial isomporphism matrix (M0):-\n{}".format(formatMatrix(self.M0, self.A_labels, self.B_labels)))
+    
+    self.F = np.zeros(self.pB, dtype=np.uint8)  # NOTE can be a true bit-vector
+    self.H = np.zeros(self.pA, dtype=np.int8)
+    self.M_ = [None] * self.pA  # M_[d] is matrix at depth d
+    
+    # * Run the algorithm!
+    self.logger.debug("Starting algorithm")
+    self.isomorphisms = []
+    self.done = False
+    self.step1()
+    self.logger.debug("Algorithm complete (done = {}, #isomorphisms = {})".format(self.done, len(self.isomorphisms)))
+    return self.isomorphisms
+    
+  def step1(self):
+    self.logger.debug("Step 1")
+    self.M = self.M0  # copy?
+    self.d = 0  # we are 0-based; Ullmann's algorithm is 1-based
+    self.H[self.d] = -1
+    self.k = self.H[self.d]  # initialized here, so that we have self.k available
+    self.F.fill(0)
+    self.step2()
+  
+  def step2(self):
+    self.logger.debug("Step 2: d = {}".format(self.d))
+    if not np.any([self.M[self.d, j] == 1 and self.F[j] == 0 for j in xrange(self.pB)]):
+      self.step7()
+    else:
+      self.M_[self.d] = self.M  # copy?
+      self.k = self.H[self.d] if self.d == 0 else -1  # 0-based vs. 1-based
+      self.step3()
+      
+  def step3(self):
+    self.logger.debug("Step 3: d = {}, k = {}, M[d] = {}, F = {}".format(self.d, self.k, self.M[self.d], self.F))
+    self.k = self.k + 1
+    while self.M[self.d, self.k] == 0 or self.F[self.k] == 1:
+      self.k = self.k + 1
+    for j in xrange(self.pB):
+      if j != self.k:
+        self.M[self.d, j] = 0
+    self.step4()
+  
+  def step4(self):
+    self.logger.debug("Step 4")
+    if self.d < (self.pA - 1):
+      self.step6()
+    else:
+      self.isomorphisms.append(self.M)
+      self.logger.debug("Candidate isomorphism (M):-")  # TODO Check if we have a valid isomorphism; if yes, add to list
+      self.logger.debug(formatMatrix(self.M, self.A_labels, self.B_labels))
+      self.step5()
+  
+  def step5(self):
+    self.logger.debug("Step 5")
+    if not np.any([self.M[self.d, j] == 1 and self.F[j] == 0 for j in xrange(self.k + 1, self.pB)]):
+      self.step7()
+    else:
+      self.M = self.M_[self.d]  # copy?
+      self.step3()
+  
+  def step6(self):
+    self.logger.debug("Step 6")
+    self.H[self.d] = self.k
+    self.F[self.k] = 1
+    self.d = self.d + 1
+    self.step2()
+    
+  def step7(self):
+    self.logger.debug("Step 7")
+    if self.d == 0:
+      self.done = True  # terminate algorithm
+    else:
+      self.F[self.k] = 0
+      self.d = self.d - 1
+      self.M = self.M_[self.d]
+      self.k = self.H[self.d]
+      self.step5()
+
+
+def formatMatrix(mat, rowLabels, colLabels):  # TODO move to util?
+  # TODO take into account max label widths?
+  out = "\t{}\n".format("\t".join(colLabels))
+  for i in xrange(mat.shape[0]):
+    out += "{}\t{}\n".format(rowLabels[i], "\t".join(str(val) for val in mat[i]))
+  return out
 
 
 if __name__ == "__main__":
