@@ -105,6 +105,7 @@ class Controller:
                 curVec = self.calcArcBallVector(self.curMouseX, self.curMouseY) #OK
                 angle = math.acos(min(1.0, np.dot(oldVec, curVec))) #OK
                 cameraAxis = np.cross(oldVec, curVec) #OK
+                cameraAxis /= np.linalg.norm(cameraAxis, ord=2) # normalize cameraAxis to be a unit vector
                 cameraToObjectCoords = np.linalg.inv(np.dot(self.context.renderer.view[:-1,:-1], self.context.scene.transform[:-1,:-1])) #???
                 cameraAxisObjectCoords = np.dot(cameraToObjectCoords, cameraAxis) #OK
                 self.context.scene.transform = hm.rotation(self.context.scene.transform, math.degrees(angle), cameraAxisObjectCoords) #OK
