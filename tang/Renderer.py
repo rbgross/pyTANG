@@ -64,3 +64,6 @@ class Renderer:
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
+
+    def quit(self):
+        glfw.CloseWindow()

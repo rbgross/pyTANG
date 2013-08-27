@@ -73,9 +73,17 @@ cube_faces = OrderedDict(
 
 cube_scale = np.float32([10.0, 10.0, 10.0])  # TODO ensure cube is scaled correctly (check units)
 
+'''
+# Color assignment #1: red, orange, yellow, blue
 cube_vertex_colors = [
   'orange', 'yellow', 'red', 'blue',
   'red', 'blue', 'orange', 'yellow' ]
+'''
+
+# Color assignment #2: red, orange, green, blue
+cube_vertex_colors = [
+  'orange', 'green', 'red', 'blue',
+  'red', 'blue', 'orange', 'green' ]
 
 colors_by_name = {
   'red': np.float32([0.8, 0.0, 0.0]),
@@ -96,13 +104,15 @@ for tag, vertex in square_vertex_by_tag.iteritems():
   square_tag_by_vertex[vertex] = tag
 
 # Color filters
-redFilter = HSVFilter(np.array([175, 100, 75], np.uint8), np.array([5, 255, 255], np.uint8))
+redFilter = HSVFilter(np.array([175, 115, 64], np.uint8), np.array([5, 255, 255], np.uint8))
 blueFilter = HSVFilter(np.array([100, 100, 75], np.uint8), np.array([115, 255, 255], np.uint8))
-orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([15, 255, 255], np.uint8))
-#greenFilter = HSVFilter(np.array([70, 100, 75], np.uint8), np.array([90, 255, 255], np.uint8))
-greenFilter = HSVFilter(np.array([60, 64, 32], np.uint8), np.array([90, 255, 255], np.uint8))  # dark green
+#orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([15, 255, 255], np.uint8))  # strict orange
+orangeFilter = HSVFilter(np.array([5, 120, 125], np.uint8), np.array([20, 255, 255], np.uint8))  # orange with a little yellow
+greenFilter = HSVFilter(np.array([50, 100, 32], np.uint8), np.array([80, 255, 255], np.uint8))  # wide range
+#greenFilter = HSVFilter(np.array([70, 64, 32], np.uint8), np.array([90, 255, 255], np.uint8))  # dark green
 yellowFilter = HSVFilter(np.array([20, 85, 150], np.uint8), np.array([44, 255, 255], np.uint8))
-purpleFilter = HSVFilter(np.array([110, 32, 32], np.uint8), np.array([140, 255, 255], np.uint8))
+purpleFilter = HSVFilter(np.array([110, 115, 64], np.uint8), np.array([140, 255, 255], np.uint8))
+# TODO multiple color filters per color to specify non-convex boundaries?
 
 class Blob:
   colorBlue = (255, 0, 0)
@@ -207,9 +217,10 @@ class ColorMarkerTracker(FrameProcessor):
     self.imageOut = None
     self.active = True
     
-    # * Initialize color filtering structures
-    #self.filterBank = dict(red=redFilter, blue=blueFilter, green=greenFilter, yellow=yellowFilter)  # Rect: RBGY
-    self.filterBank = dict(red=redFilter, blue=blueFilter, orange=orangeFilter, yellow=yellowFilter)  # Cube: RBOY
+    # * Initialize color filtering structures (note: cube_vertex_colors need t be changed as well)
+    #self.filterBank = dict(red=redFilter, blue=blueFilter, orange=orangeFilter, yellow=yellowFilter)  # Cube: RBOY
+    self.filterBank = dict(red=redFilter, blue=blueFilter, green=greenFilter, orange=orangeFilter)  # Rect: RGBO
+    #self.filterBank = dict(red=redFilter, blue=blueFilter, green=greenFilter, purple=purpleFilter)  # Rect: RGBP
     self.masks = { }
     self.morphOpenKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
   

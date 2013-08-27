@@ -26,6 +26,8 @@ class Controller:
         self.rightPressed = False
 
         self.manualControl = False
+        
+        self.quitting = False  # to prevent multiple key-presses
 
     def pollInput(self):
         currentTime = time.clock()
@@ -78,10 +80,23 @@ class Controller:
             self.context.scene.transform = np.dot(hm.rotation(hm.identity(), 60 * elapsedTime, [0, 0, 1]), self.context.scene.transform)
             self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, 60]), self.context.scene.transform)
 
+        if glfw.GetKey('1'):
+            print "1 pressed"
+        
+        if glfw.GetKey('2'):
+            print "2 pressed"
+        
+        if glfw.GetKey('3'):
+            print "3 pressed"
         
         if glfw.GetKey('X'):
             self.context.scene.dump()  # TODO prevent multiple key-presses
         
+        if glfw.GetKey(glfw.KEY_ESC):
+            if not self.quitting:
+              self.quitting = True
+              self.context.renderer.quit()  # close window and exit
+
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True
             self.context.scene.hideCube = not self.context.scene.hideCube

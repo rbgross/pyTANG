@@ -77,6 +77,10 @@ class Main:
       videoInput = VideoInput(camera, options)
       cubeTracker = CubeTracker(options)  # specialized cube tracker
       
+      # TODO let input image stabilize by eating up some frames, then configure camera
+      #   e.g. on Mac OS, use uvc-ctrl to turn off auto-exposure:
+      #   $ ./uvc-ctrl -s 1 3 10
+      
       # Setup tracking
       if self.cubeComponent is not None:
         cubeTracker.addMarkersFromTrackable(self.cubeComponent)
