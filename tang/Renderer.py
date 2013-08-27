@@ -55,15 +55,33 @@ class Renderer:
         glfw.Init()
         glfw.OpenWindowHint(glfw.FSAA_SAMPLES, 4)
         glfw.OpenWindowHint(glfw.OPENGL_VERSION_MAJOR, 3)
-        glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 2)
-        glfw.OpenWindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
-        glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)
+        glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 2)  # 3.2
+        glfw.OpenWindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)  # 3.2
+        glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_TRUE)  # 3.2
         glfw.OpenWindowHint(glfw.WINDOW_NO_RESIZE, GL_TRUE)
-        glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
+        
+        try:  # in case we fail to init this version
+          glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
+        except Exception as e:
+          print "Renderer.initialize(): Failed to initialize OpenGL: {}".format(str(e))
+          print "Renderer.initialize(): Trying lower version..."
+          glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 0)  # 3.0
+          glfw.OpenWindowHint(glfw.OPENGL_PROFILE, 0)  # 3.0
+          glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_FALSE)  # 3.0
+          glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
+          print "Renderer.initialize(): It worked!"
+        
         glfw.SetWindowTitle("TANG")
 
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
+        
+        # Find out OpenGL version, and store for future use
+        self.context.GL_version_string = glGetString(GL_VERSION).split(' ')[0]  # must have version at the beginning, e.g. "3.0 Mesa 9.x.x" to extract "3.0"
+        self.context.GL_version_major, self.context.GL_version_minor = (int(x) for x in self.context.GL_version_string.split('.'))  # must have only MAJOR.MINOR
+        print "Renderer.initialize(): OpenGL version {}.{}".format(self.context.GL_version_major, self.context.GL_version_minor)
+        self.context.GLSL_version_string = glGetString(GL_SHADING_LANGUAGE_VERSION).replace('.', '')  # "1.50" => "150"
+        print "Renderer.initialize(): GLSL version {}".format(self.context.GLSL_version_string)
 
     def quit(self):
         glfw.CloseWindow()

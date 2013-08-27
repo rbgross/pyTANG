@@ -8,6 +8,8 @@ import sys
 import numpy as np
 import hommat as hm
 
+from Context import Context
+
 class Shader:
     def __init__(self, vertexFileName, fragmentFileName):
         #Read in the vertex shader from file
@@ -19,6 +21,13 @@ class Shader:
         with open (fragmentFileName, "r") as f:
             fragmentSource = f.read()
         f.close()
+        
+        # OpenGL version-dependent code (NOTE shader source must be version 150)
+        if Context.getInstance().GLSL_version_string != "150":
+          print "Shader.__init__(): Changing shader source version to {}".format(Context.getInstance().GLSL_version_string)
+          vertexSource = vertexSource.replace("150", Context.getInstance().GLSL_version_string, 1)
+          fragmentSource = fragmentSource.replace("150", Context.getInstance().GLSL_version_string, 1)
+        # TODO put special version placeholder in shader source files instead of "150"
         
         #Create and compile the vertex shader
         vertexShader = glCreateShader(GL_VERTEX_SHADER)

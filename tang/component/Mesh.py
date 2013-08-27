@@ -2,6 +2,7 @@ import time
 import os
 from OpenGL.arrays.vbo import VBO
 from OpenGL.GL import *
+from OpenGL.GL.ARB.vertex_array_object import glGenVertexArrays, glBindVertexArray
 import glfw
 from ctypes import *
 import sys
@@ -35,7 +36,13 @@ class Mesh(Component):
         self.src = src
         self.filepath = Context.getInstance().getResourcePath('models', src)
         
-        self.vao = glGenVertexArrays(1)
+        # OpenGL version-dependent code (NOTE assumes major version = 3)
+        self.vao = None
+        if Context.getInstance().GL_version_minor > 0:  # 3.1 (or greater?)
+          self.vao = glGenVertexArrays(1)
+        else:  # 3.0 (or less?)
+          self.vao = GLuint(0)
+          glGenVertexArrays(1, self.vao)
         glBindVertexArray(self.vao)
 
         self.loadModel(self.filepath)
