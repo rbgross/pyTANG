@@ -7,6 +7,7 @@ import cv2.cv as cv
 # GL imports
 from OpenGL.GL import *
 from OpenGL.arrays import vbo
+from OpenGL.GL.framebufferobjects import *
 
 # Custom imports
 from base import FrameProcessor
@@ -57,7 +58,7 @@ class FrameProcessorGL(FrameProcessor):
       imageToRender = cv2.flip(self.imageOut, 0)  # flip OpenCV image vertically to match OpenGL convention (necessary on Windows because of glBlitFramebuffer problem; avoid if possible)
       
       glBindTexture(GL_TEXTURE_2D, self.texOutId)
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, imageToRender)
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, self.imageWidth, self.imageHeight, 0, GL_BGR, GL_UNSIGNED_BYTE, imageToRender)
       
       glBindFramebuffer(GL_READ_FRAMEBUFFER, self.framebufferId)
       # TODO Fix glBlitFramebuffer() problem on Windows, or use an alternate method to draw CV image
