@@ -78,9 +78,9 @@ class Renderer:
         
         # Find out OpenGL version, and store for future use
         self.context.GL_version_string = glGetString(GL_VERSION).split(' ')[0]  # must have version at the beginning, e.g. "3.0 Mesa 9.x.x" to extract "3.0"
-        self.context.GL_version_major, self.context.GL_version_minor = (int(x) for x in self.context.GL_version_string.split('.'))  # must have only MAJOR.MINOR
+        self.context.GL_version_major, self.context.GL_version_minor = list(int(x) for x in self.context.GL_version_string.split('.'))[0:2]  # must have only MAJOR.MINOR
         print "Renderer.initialize(): OpenGL version {}.{}".format(self.context.GL_version_major, self.context.GL_version_minor)
-        self.context.GLSL_version_string = glGetString(GL_SHADING_LANGUAGE_VERSION).replace('.', '')  # "1.50" => "150"
+        self.context.GLSL_version_string = glGetString(GL_SHADING_LANGUAGE_VERSION).split(' ')[0].replace('.', '')  # "1.50" => "150"
         print "Renderer.initialize(): GLSL version {}".format(self.context.GLSL_version_string)
 
     def quit(self):
