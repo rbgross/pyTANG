@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
 <scene>
-  <Actor name="blueTree">
+  <Actor id="blueTree" parent="cube">
     <components>
       <Transform translation="-1.0 0.5 -0.5"/>
       <RadialTree fanout="7" depth="4" spread="36.0" rootColor="0.4 0.4 0.8" edgeColor="0.8 0.4 0.4" scale="0.75 0.75 0.75"/>
     </components>
     <children/>
   </Actor>
-  <Actor name="yellowTree">
+  <Actor id="yellowTree" parent="cube">
     <components>
       <Transform translation="1.0 -0.5 0.5"/>
       <RadialTree fanout="7" depth="4" spread="36.0" rootColor="0.8 0.8 0.4" edgeColor="0.8 0.4 0.4" scale="0.75 0.75 0.75"/>

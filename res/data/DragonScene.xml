@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <scene>
-  <Actor>
+  <Actor id="cursor" parent="cube">
     <components>
       <Mesh src="Dragon.obj"/>
       <Transform translation="0.0 0.0 0.0" rotation="180.0 45.0 0.0" scale="1.0 1.0 1.0"/>

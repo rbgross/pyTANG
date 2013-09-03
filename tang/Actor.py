@@ -18,6 +18,8 @@ class Actor:
     actor = actorFactory.makeEmpty()
     
     # TODO Extract common element attributes such as id, type?
+    actor.id = xmlElement.get('id', None)
+    actor.parent = xmlElement.get('parent', None)
     
     # Load actor's components
     components = xmlElement.find('components')
@@ -45,25 +47,29 @@ class Actor:
     
     # TODO Consider a finalize() method that copies out references to key components for fast retrieval,
     #   and possibly pre-computes some results (such as a composite transform matrix)
+    
+    # Temp variables that are useful to retain
+    self.transform = hm.identity()
   
-  def draw(self, transform=hm.identity()):
+  def draw(self, baseTransform=hm.identity()):
     # TODO draw and recurse down only when this Actor is enabled
     # TODO move to a more generic approach?
     #   e.g.:- for component in self.components: component.apply()
     #   But how do we ensure order is maintained? (Mesh must be rendered after Transform and Material have been applied)
+    self.transform = baseTransform
     try:
-      transform = hm.translation(transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
-      transform = hm.rotation(transform, self.components['Transform'].rotation[0], [1, 0, 0])
-      transform = hm.rotation(transform, self.components['Transform'].rotation[1], [0, 1, 0])
-      transform = hm.rotation(transform, self.components['Transform'].rotation[2], [0, 0, 1])
-      transform = hm.scale(transform, self.components['Transform'].scale)
+      self.transform = hm.translation(self.transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
+      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[0], [1, 0, 0])
+      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[1], [0, 1, 0])
+      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[2], [0, 0, 1])
+      self.transform = hm.scale(self.transform, self.components['Transform'].scale)
     except KeyError, AttributeError:
       # Transform component not present or incomplete/invalid
-      pass  #self.renderer.setModelMatrix(transform)  # use base (parent) transform (?) - should be already set
+      pass  # use base (parent) transform (?) - should get set in next step
     
     try:
       # TODO Check if this actor is visible and has a mesh, and only then render mesh
-      self.renderer.setModelMatrix(transform)
+      self.renderer.setModelMatrix(self.transform)
       self.renderer.setDiffCol(self.components['Material'].color)
       self.components['Mesh'].render()
     except KeyError:
@@ -71,7 +77,7 @@ class Actor:
       pass
     
     for child in self.children:
-      child.draw(transform)  # TODO do not draw if not enabled (e.g. an invisible actor should be enabled, but not visible)
+      child.draw(self.transform)  # TODO do not draw if not enabled (e.g. an invisible actor should be enabled, but not visible)
   
   def findActorByComponent(self, componentName):
     if componentName in self.components:
@@ -99,6 +105,12 @@ class Actor:
   
   def toString(self, indent=""):
     out = indent + "Actor: {\n"
+    if self.id is not None:
+      out += indent + "  id: \"{}\"".format(self.id)
+      out += ",\n" if self.parent is not None or self.components or self.children else "\n"
+    if self.parent is not None:
+      out += indent + "  parent: \"{}\"".format(self.parent)
+      out += ",\n" if self.components or self.children else "\n"
     if self.components:
       out += indent + "  components: {\n"
       out += ",\n".join(component.toString(indent + "    ") for component in self.components.itervalues()) + "\n"

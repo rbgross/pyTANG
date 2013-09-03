@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<scene>
+  <Actor id="target">
+    <components>
+      <Mesh src="Dragon.obj"/>
+      <Transform translation="-17.25 0.5 81.5" rotation="194.75 93.97 0.0" scale="1.0 1.0 1.0"/>
+      <Material color="0.8 0.8 0.4"/>
+    </components>
+    <children/>
+  </Actor>
+</scene>
