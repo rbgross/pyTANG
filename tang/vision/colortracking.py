@@ -407,8 +407,11 @@ class ColorMarkerTracker(FrameProcessor):
 
 class CubeTracker(ColorMarkerTracker):
   inactiveThreshold = 1.2  # how many seconds to allow the cube to remain invisible before marking it inactive
-  cube_origin = np.float32([[0.0], [0.0], [70.0]])  # expected cube origin
+  cube_origin = np.float32([[0.0], [0.0], [85.0]])  # expected cube origin
+  tvec_maxdiff_origin = 40.0  # maximum distance from origin for a valid detection
+  tvec_maxdiff_last = 5.0  # maximum distance from last known position for a valid detection
   max_line_blob_distance_sq = 50 * 50  # squared distance between line end points and blob centers for a match
+  num_smooth_samples = 5  # number of sample transformations to use for smoothing (to reduce jitter)
   
   def __init__(self, options):
     ColorMarkerTracker.__init__(self, options)
@@ -421,10 +424,11 @@ class CubeTracker(ColorMarkerTracker):
     self.cubeEdgeFilter = HSVFilter(np.array([0, 0, 200], np.uint8), np.array([179, 30, 255], np.uint8))  # white sticks
     
     # * Initialize 3D projection params
-    self.rvec = np.zeros((3, 1), dtype=np.float32)
-    self.tvec = np.zeros((3, 1), dtype=np.float32)
+    self.rvecRaw = np.zeros((3, 1), dtype=np.float32)
+    self.tvecRaw = np.zeros((3, 1), dtype=np.float32)
     self.active = False
     self.lastSeen = timeNow
+    self.smoothReset()
     
     # * Read in camera parameters
     # NOTE defined as module objects
@@ -527,10 +531,10 @@ class CubeTracker(ColorMarkerTracker):
         self.trackVerticesRansac(trackable, activeMarkers)
     
     # * If we have a valid transform, project a visualization/model overlayed on top of video stream
-    if self.rvec is not None and self.tvec is not None:
-      self.logger.debug("Transform [final]:-\nrvec:\n{}\ntvec:\n{}".format(self.rvec, self.tvec))
+    if self.rvecRaw is not None and self.tvecRaw is not None:
+      self.logger.debug("Transform [final]:-\nrvec:\n{}\ntvec:\n{}".format(self.rvecRaw, self.tvecRaw))
       if self.gui and doRenderVolume:
-        volume_points, jacobian = cv2.projectPoints(self.model_volume_points, self.rvec, self.tvec, camera_params, dist_coeffs)
+        volume_points, jacobian = cv2.projectPoints(self.model_volume_points, self.rvecRaw, self.tvecRaw, camera_params, dist_coeffs)
         volume_points = volume_points.reshape(-1, 2)  # remove nesting
         for point, intensity in zip(volume_points, self.model_volume_intensities):
           if 0 <= point[0] < self.imageSize[0] and 0 <= point[1] < self.imageSize[1]:
@@ -670,7 +674,7 @@ class CubeTracker(ColorMarkerTracker):
       #self.logger.debug("{} consistent transforms:\n{}".format(len(consistent_transforms), "\n".join(str(transform) for transform in consistent_transforms)))
       if len(consistent_transforms) == 0:
         if self.active:
-          final_transform = sorted(transforms, key=lambda transform: np.linalg.norm(transform[2] - self.tvec, ord=2))[0]
+          final_transform = sorted(transforms, key=lambda transform: np.linalg.norm(transform[2] - trackable.tvec, ord=2))[0]
       else:
         final_transform = ("/".join(transform[0] for transform in consistent_transforms), consistent_transforms[0][1], consistent_transforms[0][2])  # use rvec from the first consistent transform, and mean tvec (?)
     
@@ -701,7 +705,7 @@ class CubeTracker(ColorMarkerTracker):
     heading_diffs = ((heading_diffs + pi) % (2 * pi)) - pi  # ensures angle wraparound is handled correctly
     #print "heading_diffs: {}".format(heading_diffs)
     if np.any(heading_diffs > 0):
-      self.logger.debug("Failed ordering check")
+      #self.logger.debug("Failed ordering check")
       return False  # if any heading angle difference is positive, skip this face
       
     # * Check if face points form a convex quadrilateral facing us
@@ -713,7 +717,7 @@ class CubeTracker(ColorMarkerTracker):
     cross_prods = np.cross(edge_vectors, np.roll(edge_vectors, 1, axis=0))  # cross products of consecutive edge vectors
     #print "cross_prods: {}".format(cross_prods)
     if np.any(cross_prods < 0):
-      self.logger.debug("Failed convex quad, front-face check")
+      #self.logger.debug("Failed convex quad, front-face check")
       return False  # if any cross product is negative, then quad is either non-convex or back-facing
     
     # * Check if opposite heading vector lengths and angles are almost equal (i.e. the quad is almost a rhombus)
@@ -733,7 +737,7 @@ class CubeTracker(ColorMarkerTracker):
     #print "{} dot {} = {}".format(heading_vecs[0], heading_vecs[2], np.dot(heading_vecs[0], heading_vecs[2]))
     #print "{} dot {} = {}".format(heading_vecs[1], heading_vecs[3], np.dot(heading_vecs[1], heading_vecs[3]))
     if not (np.dot(heading_vecs[0], heading_vecs[2]) < -0.95 and np.dot(heading_vecs[1], heading_vecs[3]) < -0.95):
-      self.logger.debug("Failed rhombus check")
+      #self.logger.debug("Failed rhombus check")
       return False
     
     if self.gui and doRenderFace:
@@ -788,11 +792,11 @@ class CubeTracker(ColorMarkerTracker):
       #self.logger.debug("[solvePnP] Input:-\nworldPositions:\n{}\nimagePositions:\n{}".format(worldPositions, imagePositions))
       retval, trackable.rvec, trackable.tvec = cv2.solvePnP(worldPositions, imagePositions, camera_params, dist_coeffs)
       #self.logger.debug("[solvePnP] Transform (retval: {}):-\nrvec:\n{}\ntvec:\n{}".format(retval, trackable.rvec, trackable.tvec))
-      self.rvec = trackable.rvec
-      self.tvec = trackable.tvec
+      self.rvecRaw = trackable.rvec
+      self.tvecRaw = trackable.tvec
       # ** Project a cube overlayed on top of video stream
       if self.gui and doRenderCube:
-        cube_points, jacobian = cv2.projectPoints(self.cube_vertices, self.rvec, self.tvec, camera_params, dist_coeffs)
+        cube_points, jacobian = cv2.projectPoints(self.cube_vertices, self.rvecRaw, self.tvecRaw, camera_params, dist_coeffs)
         cube_points = cube_points.reshape(-1, 2)  # remove nesting
         #self.logger.debug("Projected cube points:\n{}".format(cube_points))
         for u, v in self.cube_edges:
@@ -995,15 +999,35 @@ class CubeTracker(ColorMarkerTracker):
     
     if self.active:
       tvec_diff_origin = np.linalg.norm(tvec - self.cube_origin, ord=2)
-      tvec_diff = np.linalg.norm(tvec - self.tvec, ord=2)
-      self.logger.debug("Dist. from origin: {}, from last pos.: {}".format(tvec_diff_origin, tvec_diff))
-      if tvec_diff_origin > 30.0 or tvec_diff > 5.0:  # TODO check rvec_diff as well? (be careful with angle wraparound)
+      tvec_diff_last = np.linalg.norm(tvec - self.tvecRaw, ord=2)
+      self.logger.debug("Dist. from origin: {}, from last pos.: {}".format(tvec_diff_origin, tvec_diff_last))
+      if tvec_diff_origin > self.tvec_maxdiff_origin or tvec_diff_last > self.tvec_maxdiff_last:  # TODO check rvec_diff as well? (be careful with angle wraparound)
         self.logger.debug("Failed origin and continuity check")
+        #self.smoothReset()
         return False
     
-    self.rvec = rvec.copy()
-    self.tvec = tvec.copy()
+    self.rvecRaw = rvec.copy()
+    self.tvecRaw = tvec.copy()
+    self.smoothUpdate()
+    
     return True
+  
+  def smoothReset(self):
+    """Initialize structs for storing transform samples over time for smoothing."""
+    self.rvecRaws = np.zeros((3, self.num_smooth_samples), dtype=np.float32)
+    self.tvecRaws = np.zeros((3, self.num_smooth_samples), dtype=np.float32)
+    self.smoothIdx = 0
+    self.rvec = np.zeros((3, 1), dtype=np.float32)
+    self.tvec = np.zeros((3, 1), dtype=np.float32)
+  
+  def smoothUpdate(self):
+    """Add current raw transform to samples, and compute smoothed (averaged) transform."""
+    self.rvecRaws[:,self.smoothIdx:self.smoothIdx+1] = self.rvecRaw
+    self.tvecRaws[:,self.smoothIdx:self.smoothIdx+1] = self.tvecRaw
+    self.smoothIdx = (self.smoothIdx + 1) % self.num_smooth_samples  # circular buffer
+    self.rvec = np.mean(self.rvecRaws, axis=1, keepdims=True)  # NOTE taking mean of rotation vector may be invalid if it represents angles
+    self.tvec = np.mean(self.tvecRaws, axis=1, keepdims=True)
+    # TODO Perform weighted averaging / take into account cube motion
 
 
 class SubgraphIsomorphisms:
