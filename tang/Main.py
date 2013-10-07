@@ -88,6 +88,7 @@ class Main:
                 'windowWidth': windowWidth, 'windowHeight': windowHeight }
       videoInput = VideoInput(camera, options)
       cubeTracker = CubeTracker(options)  # specialized cube tracker
+      self.context.cubeTracker = cubeTracker  # to allow access to cubeTracker's input and output images etc.
       
       # TODO let input image stabilize by eating up some frames, then configure camera
       #   e.g. on Mac OS, use uvc-ctrl to turn off auto-exposure:

@@ -8,11 +8,14 @@ import sys
 import math
 import time
 import numpy as np
+import cv2
 import hommat as hm
 
 from Context import Context
 
 class Controller:
+    input_snapshot_file = "../out/snapshot-input.png"  # file path to store snapshot of input camera image
+    
     def __init__(self):
         self.context = Context.getInstance()  # NOTE must contain scene
         
@@ -90,7 +93,15 @@ class Controller:
             print "3 pressed"
         
         if glfw.GetKey('X'):
-            self.context.scene.dump()  # TODO prevent multiple key-presses
+            self.context.scene.dump()
+            time.sleep(0.5)  # TODO prevent multiple key-presses properly
+        
+        if glfw.GetKey('I'):
+            inputSnapshot = self.context.cubeTracker.imageIn  # grab current input image as snapshot
+            cv2.imshow("Input snapshot", inputSnapshot)  # show snapshot in a window
+            #cv2.imwrite(self.input_snapshot_file, inputSnapshot)  # write snapshot to file (NOTE doesn't work!)
+            #print "Input snapshot saved to {}".format(self.input_snapshot_file)
+            time.sleep(0.5)  # TODO prevent multiple key-presses properly
         
         if glfw.GetKey(glfw.KEY_ESC):
             if not self.quitting:

@@ -225,7 +225,8 @@ class ColorMarkerTracker(FrameProcessor):
     self.morphOpenKernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
   
   def process(self, imageIn, timeNow):
-    self.image = imageIn
+    self.imageIn = imageIn  # keep a reference to the original image
+    self.image = self.imageIn
     if self.gui: self.imageOut = self.image.copy()
     self.image = cv2.blur(self.image, (5, 5))
     #self.image = cv2.merge([cv2.equalizeHist(imageIn[:,:,0]), cv2.equalizeHist(imageIn[:,:,1]), cv2.equalizeHist(imageIn[:,:,2])])
