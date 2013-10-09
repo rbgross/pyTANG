@@ -96,6 +96,10 @@ class Controller:
             self.context.scene.dump()
             time.sleep(0.5)  # TODO prevent multiple key-presses properly
         
+        if glfw.GetKey('T'):
+            self.context.main.toggleTask()
+            time.sleep(0.5)  # TODO prevent multiple key-presses properly
+        
         if glfw.GetKey('I'):
             inputSnapshot = self.context.cubeTracker.imageIn  # grab current input image as snapshot
             cv2.imshow("Input snapshot", inputSnapshot)  # show snapshot in a window

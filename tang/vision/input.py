@@ -24,6 +24,7 @@ class VideoInput:
     # * Obtain video source (camera) and optional parameters
     self.camera = camera
     self.isVideo = options.get('isVideo', False)
+    self.isImage = options.get('isImage', False)
     self.loopVideo = options.get('loopVideo', True)
     self.cameraWidth = options.get('cameraWidth', cameraWidth)
     self.cameraHeight = options.get('cameraHeight', cameraHeight)
@@ -33,16 +34,21 @@ class VideoInput:
     self.frameCount = 0
     
     # * Set camera frame size (if this is a live camera)
-    if not self.isVideo:
+    if not self.isVideo and not self.isImage:
       #_, self.imageIn = self.camera.read()  # pre-grab
       # NOTE: If camera frame size is not one supported by the hardware, grabbed images are scaled to desired size, discarding aspect-ratio
       self.camera.set(cv.CV_CAP_PROP_FRAME_WIDTH, self.cameraWidth)
       self.camera.set(cv.CV_CAP_PROP_FRAME_HEIGHT, self.cameraHeight)
     
-    # * Grab test image and read some properties
-    _, self.image = self.camera.read()  # post-grab (to apply any camera prop changes made)
-    self.frameCount += 1
-    self.logger.info("Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT))))
+    # * Check if this is a static image or camera/video
+    if self.isImage:
+      # ** Supplied camera object should be an image, copy it
+      self.image = self.camera
+    else:
+      # ** Grab test image and read some properties
+      _, self.image = self.camera.read()  # post-grab (to apply any camera prop changes made)
+      self.frameCount += 1
+      self.logger.info("Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT))))
     self.imageSize = (self.image.shape[1], self.image.shape[0])
     self.logger.info("Image size: {}x{}".format(self.imageSize[0], self.imageSize[1]))
     if self.isVideo:
@@ -58,8 +64,9 @@ class VideoInput:
       self.logger.debug("Video reset...")
       # TODO Figure out what's causing the off-by-ten bug (after a reset, the last 10-11 frames cannot be read anymore!)
     
-    self.isOkay, self.image = self.camera.read()
-    self.frameCount += 1
+    if not self.isImage:
+      self.isOkay, self.image = self.camera.read()
+      self.frameCount += 1
     
     return self.isOkay
 

@@ -47,6 +47,7 @@ class Main:
     
     # * Initialize global context (command line args are parsed by Context)
     self.context = Context.createInstance(sys.argv)
+    self.context.main = self
     # NOTE Most objects require an initialized context, so do this as soon as possible
     
     # * Obtain a logger (and show off!)
@@ -65,25 +66,47 @@ class Main:
     self.cubeComponent = self.cubeActor.components['Cube'] if self.cubeActor is not None else None
     
     # * Task-specific initialization
-    self.task = 1  # choose which task here (TODO make this a command-line arg./config param.?)
+    self.task = None
+    self.taskActive = False
+    self.initTask(1)  # choose which task here (TODO make this a command-line arg./config param.?)
+  
+  def initTask(self, task=None):
+    if task == 1:
+      # ** Task 1: Match movable cursor object with static target object
+      self.cursor = self.context.scene.findActorById('cursor')
+      self.target = self.context.scene.findActorById('target')
+      if self.cursor is None or self.target is None:
+        self.task = None
+        self.taskActive = False
+        self.logger.warn("Task 1: Cursor or target object not found; task could not be initialized")
+        return False
+      else:
+        self.task1Out = np.zeros((64, 128, 3), dtype=np.uint8)  # [debug]
+        self.task = 1
+        self.taskActive = True
+        self.logger.info("Task 1: Ready")
+        return True
     
-    # ** Task 1: Match movable cursor object with static target object
-    self.cursor = self.context.scene.findActorById('cursor')
-    self.target = self.context.scene.findActorById('target')
-    if self.cursor is None or self.target is None:
-      self.task = None
-      self.logger.warn("Task 1: Cursor or target object not found; task could not be initialized")
-    else:
-      self.task1Out = np.zeros((64, 128, 3), dtype=np.uint8)  # [debug]
-      self.logger.info("Task 1: Ready")
+    self.task = None
+    self.taskActive = False
+    self.logger.info("Task(s) turned off")
+    return True
+  
+  def toggleTask(self):
+    if self.task == 1:  # this means task 1 has been initialized successfully
+      self.taskActive = not self.taskActive
+      self.cursor.visible = self.taskActive
+      self.target.visible = self.taskActive
+      self.logger.info("Task 1: {}".format("Activated" if self.taskActive else "Deactivated"))
   
   def run(self):
-    # * Open camera/video file and start vision loop, if OpenCV is available
+    # * Open camera/input file and start vision loop, if OpenCV is available
     if haveCV:
-      self.logger.info("Camera device / video input file: {}".format(self.context.cameraDevice))
-      camera = cv2.VideoCapture(self.context.cameraDevice)
+      self.logger.info("Camera device/input file: {}".format(self.context.cameraDevice))
+      camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
       options={ 'gui': self.context.gui, 'debug': self.context.debug,
                 'isVideo': self.context.isVideo, 'loopVideo': True,
+                'isImage': self.context.isImage,
                 'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                 'windowWidth': windowWidth, 'windowHeight': windowHeight }
       videoInput = VideoInput(camera, options)
@@ -134,12 +157,12 @@ class Main:
         rmat_diff = self.target.transform[0:3, 0:3] - self.cursor.transform[0:3, 0:3]
         #self.logger.info("Rotation difference matrix:-\n{}".format(rmat_diff))
         rmat_sumAbsDiff = np.sum(np.abs(rmat_diff))
-        self.logger.debug("Rotation, sum of absolute differences: {}".format(rmat_sumAbsDiff)) 
+        #self.logger.debug("Rotation, sum of absolute differences: {}".format(rmat_sumAbsDiff)) 
         # TODO use cv2.Rodrigues to compute individual x, y, z rotation components and then compare
         tvec_diff = self.target.transform[0:3, 3] - self.cursor.transform[0:3, 3]
         #self.logger.info("Translation difference vector:-\n{}".format(tvec_diff))
         tvec_normDiff = np.linalg.norm(tvec_diff, ord=2)
-        self.logger.debug("Translation, L2-norm of differences  : {}".format(tvec_normDiff))
+        #self.logger.debug("Translation, L2-norm of differences  : {}".format(tvec_normDiff))
         
         self.task1Out.fill(255)
         cv2.putText(self.task1Out, "r: {:5.2f}".format(rmat_sumAbsDiff), (8, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 200), 2)
@@ -154,15 +177,17 @@ class Main:
       self.logger.info("Waiting on vision thread to finish...")
       visionThread.join()
       self.logger.info("Cleaning up...")
-      camera.release()
+      if not self.context.isImage:
+        camera.release()
 
 def usage():
-  print "Usage: {} [<resource_path> [<camera_device> | <video_filename>]]".format(sys.argv[0])
+  print "Usage: {} [<resource_path> [<camera_device> | <video_filename> | <image_filename>]]".format(sys.argv[0])
   print "Arguments:"
   print "  resource_path   Path to \'res\' dir. containing models, shaders, etc."
   print "  camera_device   Integer specifying camera to read from (default: 0)"
   print "  video_filename  Path to video file to use instead of live camera"
-  print "Note: Only one of camera_device or video_filename should be specified."
+  print "  image_filename  Path to static image file to use instead of live camera"
+  print "Note: Only one of camera device or video/image filename should be specified."
   print
 
 if __name__ == '__main__':

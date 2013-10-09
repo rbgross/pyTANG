@@ -48,6 +48,9 @@ class Actor:
     # TODO Consider a finalize() method that copies out references to key components for fast retrieval,
     #   and possibly pre-computes some results (such as a composite transform matrix)
     
+    # Set visibility to True upon initialization
+    self.visible = True  # only affects this actor, not its children
+    
     # Temp variables that are useful to retain
     self.transform = hm.identity()
   
@@ -55,7 +58,7 @@ class Actor:
     # TODO draw and recurse down only when this Actor is enabled
     # TODO move to a more generic approach?
     #   e.g.:- for component in self.components: component.apply()
-    #   But how do we ensure order is maintained? (Mesh must be rendered after Transform and Material have been applied)
+    #   But how do we ensure order is maintained? (Mesh must be rendered after applying Transform and Material) OrderedDict?
     self.transform = baseTransform
     try:
       self.transform = hm.translation(self.transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
@@ -67,14 +70,16 @@ class Actor:
       # Transform component not present or incomplete/invalid
       pass  # use base (parent) transform (?) - should get set in next step
     
-    try:
-      # TODO Check if this actor is visible and has a mesh, and only then render mesh
-      self.renderer.setModelMatrix(self.transform)
-      self.renderer.setDiffCol(self.components['Material'].color)
-      self.components['Mesh'].render()
-    except KeyError:
-      # No Material and/or Mesh, silently ignore (TODO: Make this more efficient since we'll have a lot of Empty actors)
-      pass
+    # Render this actor, if visible
+    if self.visible:
+      try:
+        self.renderer.setModelMatrix(self.transform)
+        self.renderer.setDiffCol(self.components['Material'].color)
+        # TODO Check if a mesh component is attached, and only then render it
+        self.components['Mesh'].render()
+      except KeyError:
+        # No Material and/or Mesh, silently ignore (TODO: Make this more efficient since we'll have a lot of Empty actors)
+        pass
     
     for child in self.children:
       child.draw(self.transform)  # TODO do not draw if not enabled (e.g. an invisible actor should be enabled, but not visible)

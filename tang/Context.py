@@ -1,6 +1,7 @@
 import sys
 import os
 import logging.config
+from vision.util import isImageFile
 
 class Context:
   """Application context class to store global data, configuration and objects."""
@@ -41,16 +42,23 @@ class Context:
       logging.getLogger().setLevel(logging.INFO)  # one level above DEBUG
       # NOTE Logging level order: DEBUG < INFO < WARN < ERROR < CRITICAL
     
-    # * Obtain camera device no. / input video filename
-    self.cameraDevice = 0  # NOTE A default video filename can be specified here, but isVideo must also be set to true then
+    # * Obtain camera device no. or input video/image filename
+    self.cameraDevice = 0  # NOTE A default video/image filename can be specified here, but isVideo/isImage must be set accordingly
     self.isVideo = False
+    self.isImage = False
     if len(sys.argv) > 2:
       try:
         self.cameraDevice = int(sys.argv[2])  # works if sys.argv[2] is an int (device no.)
         self.isVideo = False
+        self.isImage = False
       except ValueError:
         self.cameraDevice = os.path.abspath(sys.argv[2])  # fallback: treat sys.argv[2] as string (filename)
-        self.isVideo = True
+        if isImageFile(self.cameraDevice):
+          self.isVideo = False
+          self.isImage = True
+        else:
+          self.isVideo = True
+          self.isImage = False
   
   def getResourcePath(self, subdir, filename):
     return os.path.abspath(os.path.join(self.resPath, subdir, filename))
