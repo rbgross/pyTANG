@@ -24,6 +24,10 @@ doRenderMarkers = True
 doRenderCube = False
 doRenderFace = True
 doRenderVolume = False
+doSmoothPose = True
+
+# Global constants
+two_pi = 2 * pi
 
 # Camera calibration
 # TODO calibrate camera using printed pattern on cardboard, save to config file, read here
@@ -411,6 +415,7 @@ class CubeTracker(ColorMarkerTracker):
   cube_origin = np.float32([[0.0], [0.0], [85.0]])  # expected cube origin
   tvec_maxdiff_origin = 40.0  # maximum distance from origin for a valid detection
   tvec_maxdiff_last = 5.0  # maximum distance from last known position for a valid detection
+  rvec_maxdiff_last = pi  # maximum combined (L2-norm) angle difference from last known pose
   max_line_blob_distance_sq = 50 * 50  # squared distance between line end points and blob centers for a match
   num_smooth_samples = 5  # number of sample transformations to use for smoothing (to reduce jitter)
   
@@ -1001,21 +1006,29 @@ class CubeTracker(ColorMarkerTracker):
     if self.active:
       tvec_diff_origin = np.linalg.norm(tvec - self.cube_origin, ord=2)
       tvec_diff_last = np.linalg.norm(tvec - self.tvecRaw, ord=2)
-      self.logger.debug("Dist. from origin: {}, from last pos.: {}".format(tvec_diff_origin, tvec_diff_last))
-      if tvec_diff_origin > self.tvec_maxdiff_origin or tvec_diff_last > self.tvec_maxdiff_last:  # TODO check rvec_diff as well? (be careful with angle wraparound)
+      rvec_diff_last = np.linalg.norm(((rvec - self.rvecRaw) + pi) % two_pi - pi, ord=2)  # norm of smallest angle difference along the 3 axes
+      self.logger.debug("Dist. from origin: {}, from last pos.: {}; angle diff: {}".format(tvec_diff_origin, tvec_diff_last, rvec_diff_last))
+      if tvec_diff_origin > self.tvec_maxdiff_origin or tvec_diff_last > self.tvec_maxdiff_last or rvec_diff_last > self.rvec_maxdiff_last:  # TODO check rvec_diff as well? (be careful with angle wraparound)
         self.logger.debug("Failed origin and continuity check")
         #self.smoothReset()
         return False
     
     self.rvecRaw = rvec.copy()
     self.tvecRaw = tvec.copy()
-    self.smoothUpdate()
+    if doSmoothPose:
+      #self.rvecDiff = self.rvec - rvec
+      self.rvecDiff = ((self.rvec - rvec) + pi) % two_pi - pi  # NOTE smaller difference between 2 angles; reverse order
+      self.smoothUpdate()
+    else:
+      self.rvec = self.rvecRaw
+      self.tvec = self.tvecRaw
     
     return True
   
   def smoothReset(self):
     """Initialize structs for storing transform samples over time for smoothing."""
     self.rvecRaws = np.zeros((3, self.num_smooth_samples), dtype=np.float32)
+    self.rvecDiffs = np.zeros((3, self.num_smooth_samples), dtype=np.float32)
     self.tvecRaws = np.zeros((3, self.num_smooth_samples), dtype=np.float32)
     self.smoothIdx = 0
     self.rvec = np.zeros((3, 1), dtype=np.float32)
@@ -1026,9 +1039,9 @@ class CubeTracker(ColorMarkerTracker):
     self.rvecRaws[:,self.smoothIdx:self.smoothIdx+1] = self.rvecRaw
     self.tvecRaws[:,self.smoothIdx:self.smoothIdx+1] = self.tvecRaw
     self.smoothIdx = (self.smoothIdx + 1) % self.num_smooth_samples  # circular buffer
-    self.rvec = np.mean(self.rvecRaws, axis=1, keepdims=True)  # NOTE taking mean of rotation vector may be invalid if it represents angles
+    self.rvec = self.rvecRaw + np.mean(((self.rvecRaws - self.rvecRaw) + pi) % two_pi - pi, axis=1, keepdims=True)  # correct for angle wraparound: compute smallest angle difference with current raw rvec, take mean and add raw rvec back in
     self.tvec = np.mean(self.tvecRaws, axis=1, keepdims=True)
-    # TODO Perform weighted averaging / take into account cube motion
+    # TODO Perform weighted averaging / take into account cube motion (Kalman filter)
 
 
 class SubgraphIsomorphisms:
