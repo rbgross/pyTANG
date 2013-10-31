@@ -104,12 +104,15 @@ class Main:
     if haveCV:
       self.logger.info("Camera device/input file: {}".format(self.context.cameraDevice))
       camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
+      # TODO move some more options (e.g. *video*) to context; introduce config.yaml-like solution with command-line overrides
       options={ 'gui': self.context.gui, 'debug': self.context.debug,
-                'isVideo': self.context.isVideo, 'loopVideo': True,
+                'isVideo': self.context.isVideo, 'loopVideo': True, 'syncVideo': True, 'videoFPS': 'auto',
                 'isImage': self.context.isImage,
                 'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                 'windowWidth': windowWidth, 'windowHeight': windowHeight }
       videoInput = VideoInput(camera, options)
+      imageBlitter = FrameProcessorGL(options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
+      # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
       cubeTracker = CubeTracker(options)  # specialized cube tracker
       self.context.cubeTracker = cubeTracker  # to allow access to cubeTracker's input and output images etc.
       
@@ -121,14 +124,14 @@ class Main:
       if self.cubeComponent is not None:
         cubeTracker.addMarkersFromTrackable(self.cubeComponent)
       
-      imageBlitter = FrameProcessorGL(options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
-      # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
       cubeTracker.initialize(videoInput.image, time.time())
-      imageBlitter.initialize(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, 0.0)
+      imageBlitter.initialize(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, time.time())
       
       def visionLoop():
         self.logger.info("[Vision loop] Starting...")
-        while self.context.renderer.windowOpen():
+        if videoInput.isVideo:
+          videoInput.resetVideo()
+        while self.context.renderer.windowOpen() and videoInput.isOkay:
           if videoInput.read():
             cubeTracker.process(videoInput.image, time.time())  # NOTE this can be computationally expensive
             imageBlitter.process(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, time.time())
@@ -143,7 +146,7 @@ class Main:
       visionThread.start()
     
     # * Start GL render loop
-    while self.context.renderer.windowOpen():
+    while self.context.renderer.windowOpen() and videoInput.isOkay:
       self.context.controller.pollInput()
       self.context.renderer.startDraw()
       if not self.experimentalMode:

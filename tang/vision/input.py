@@ -2,6 +2,7 @@
 
 # Python imports
 import sys
+import time
 import logging
 
 # OpenCV imports
@@ -18,7 +19,7 @@ cameraHeight = 480
 
 class VideoInput:
   """Abstracts away the handling of recorded video files and live camera as input."""
-  # TODO Incorporate static images, and option of syncing video playback to realtime
+  # TODO Incorporate option of syncing video playback to realtime
   
   def __init__(self, camera, options):
     # * Obtain video source (camera) and optional parameters
@@ -26,16 +27,20 @@ class VideoInput:
     self.isVideo = options.get('isVideo', False)
     self.isImage = options.get('isImage', False)
     self.loopVideo = options.get('loopVideo', True)
+    self.syncVideo = options.get('syncVideo', True)
+    self.videoFPS = options.get('videoFPS', 'auto')
     self.cameraWidth = options.get('cameraWidth', cameraWidth)
     self.cameraHeight = options.get('cameraHeight', cameraHeight)
     
     # * Acquire logger and initialize other members
     self.logger = logging.getLogger(self.__class__.__name__)
     self.frameCount = 0
+    self.timeNow = self.timeStart = time.time()
+    self.timeDelta = 0.0
     
     # * Set camera frame size (if this is a live camera)
     if not self.isVideo and not self.isImage:
-      #_, self.imageIn = self.camera.read()  # pre-grab
+      #_, self.image = self.camera.read()  # pre-grab
       # NOTE: If camera frame size is not one supported by the hardware, grabbed images are scaled to desired size, discarding aspect-ratio
       self.camera.set(cv.CV_CAP_PROP_FRAME_WIDTH, self.cameraWidth)
       self.camera.set(cv.CV_CAP_PROP_FRAME_HEIGHT, self.cameraHeight)
@@ -45,30 +50,81 @@ class VideoInput:
       # ** Supplied camera object should be an image, copy it
       self.image = self.camera
     else:
-      # ** Grab test image and read some properties
-      _, self.image = self.camera.read()  # post-grab (to apply any camera prop changes made)
-      self.frameCount += 1
-      self.logger.info("Camera size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT))))
+      if self.isVideo:
+        # ** Read video properties, set video-specific variables
+        self.videoNumFrames = int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT))
+        if self.videoFPS == 'auto':
+          self.videoFPS = self.camera.get(cv.CV_CAP_PROP_FPS)
+        else:
+          try:
+            self.videoFPS = float(self.videoFPS)
+          except ValueError:
+            self.logger.warning("Invalid video FPS \"{}\"; switching to auto".format(self.videoFPS))
+            self.videoFPS = self.camera.get(cv.CV_CAP_PROP_FPS)
+        self.videoDuration = self.videoNumFrames / self.videoFPS
+        self.logger.info("Video [init]: {:.3f} secs., {} frames at {:.2f} fps{}".format(self.videoDuration, self.videoNumFrames, self.videoFPS, (" (sync target)" if self.syncVideo else "")))
+        if self.syncVideo:
+          self.videoFramesRepeated = 0
+          self.videoFramesSkipped = 0
+      
+      # ** Grab test image and read common camera/video properties
+      self.readFrame()  # post-grab (to apply any camera prop changes made)
+      self.logger.info("Frame size: {}x{}".format(int(self.camera.get(cv.CV_CAP_PROP_FRAME_WIDTH)), int(self.camera.get(cv.CV_CAP_PROP_FRAME_HEIGHT))))
+      if self.isVideo:
+        self.resetVideo()
+    
+    # * Read image properties (common to static image/camera/video)
     self.imageSize = (self.image.shape[1], self.image.shape[0])
     self.logger.info("Image size: {}x{}".format(self.imageSize[0], self.imageSize[1]))
-    if self.isVideo:
-      self.numVideoFrames = int(self.camera.get(cv.CV_CAP_PROP_FRAME_COUNT))  # read num frames (if video)
-      self.logger.info("Video file with {} frames".format(self.numVideoFrames))
     
     self.isOkay = True  # all good, so far
   
+  def readFrame(self):
+    """Read a frame from camera/video. Not meant to be called directly."""
+    if self.isVideo and self.loopVideo and self.frameCount >= self.videoNumFrames:
+      framesDelivered = self.frameCount + self.videoFramesRepeated - self.videoFramesSkipped if self.syncVideo else self.frameCount
+      self.logger.info("Video [loop]: {:.3f} secs., {} frames at {:.2f} fps{}".format(
+        self.timeDelta,
+        framesDelivered,
+        (framesDelivered / self.timeDelta) if self.timeDelta > 0.0 else 0.0,
+        (" ({} repeated, {} skipped)".format(self.videoFramesRepeated, self.videoFramesSkipped) if self.syncVideo else "")))
+      self.resetVideo()
+      if self.syncVideo:
+        self.videoFramesRepeated = 0
+        self.videoFramesSkipped = 0
+    
+    self.isOkay, self.image = self.camera.read()
+    self.frameCount += 1
+  
   def read(self):
-    if self.isVideo and self.loopVideo and self.frameCount >= self.numVideoFrames:
-      self.camera.set(cv.CV_CAP_PROP_POS_FRAMES, 0)
-      self.frameCount = 0
-      self.logger.debug("Video reset...")
-      # TODO Figure out what's causing the off-by-ten bug (after a reset, the last 10-11 frames cannot be read anymore!)
+    """Read a frame from image/camera/video, handling video sync and loop."""
+    self.timeNow = time.time()
+    self.timeDelta = self.timeNow - self.timeStart
     
     if not self.isImage:
-      self.isOkay, self.image = self.camera.read()
-      self.frameCount += 1
+      if self.isVideo and self.syncVideo:
+        targetFrameCount = self.videoFPS * self.timeDelta
+        diffFrameCount = targetFrameCount - self.frameCount
+        #self.logger.debug("[syncVideo] timeDelta: {:06.3f}, frame: {:03d}, target: {:06.2f}, diff: {:+04.2f}".format(self.timeDelta, self.frameCount, targetFrameCount, diffFrameCount))
+        if diffFrameCount <= 0:
+          self.videoFramesRepeated += 1
+        else:
+          self.videoFramesSkipped += min(int(diffFrameCount), self.videoNumFrames - self.frameCount)
+          while self.frameCount < targetFrameCount:
+            self.readFrame()
+            if self.frameCount == 1:  # a video reset occurred
+              break
+      else:
+        self.readFrame()
     
     return self.isOkay
+  
+  def resetVideo(self):
+    self.camera.set(cv.CV_CAP_PROP_POS_FRAMES, 0)
+    self.frameCount = 0
+    self.timeNow = self.timeStart = time.time()
+    self.timeDelta = 0.0
+    # TODO Fix reset bug (after a reset, the last few frames cannot be read anymore - looks like a keyframe-related issue)
 
 
 def run(processor=FrameProcessor(options={ 'gui': True, 'debug': True }), gui=True, debug=True):  # default options
