@@ -27,9 +27,10 @@ class Controller:
         self.curMouseY = self.oldMouseY
         self.leftPressed = False
         self.rightPressed = False
-
+        
         self.manualControl = False
         
+        self.doQuit = False  # flag to signal stop condition
         self.quitting = False  # to prevent multiple key-presses
 
     def pollInput(self):
@@ -109,8 +110,8 @@ class Controller:
         
         if glfw.GetKey(glfw.KEY_ESC):
             if not self.quitting:
+              self.doQuit = True
               self.quitting = True
-              self.context.renderer.quit()  # close window and exit
 
         if not self.leftPressed and glfw.GetMouseButton(glfw.MOUSE_BUTTON_LEFT):
             self.leftPressed = True

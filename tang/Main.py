@@ -35,8 +35,6 @@ if haveCV:
 # NOTE: glBlitFramebuffer() doesn't play well if source and destination sizes are different, so keep these same
 windowWidth, windowHeight = (640, 480)
 cameraWidth, cameraHeight = (640, 480)
-gui = False
-debug = False
 
 class Main:
   """Main application class."""
@@ -82,6 +80,7 @@ class Main:
         return False
       else:
         self.task1Out = np.zeros((64, 128, 3), dtype=np.uint8)  # [debug]
+        self.task1WindowName = "Task 1"  # [debug]
         self.task = 1
         self.taskActive = True
         self.logger.info("Task 1: Ready")
@@ -97,6 +96,7 @@ class Main:
       self.taskActive = not self.taskActive
       self.cursor.visible = self.taskActive
       self.target.visible = self.taskActive
+      if not self.taskActive: cv2.destroyWindow(self.task1WindowName)  # [debug]
       self.logger.info("Task 1: {}".format("Activated" if self.taskActive else "Deactivated"))
   
   def run(self):
@@ -148,6 +148,10 @@ class Main:
     # * Start GL render loop
     while self.context.renderer.windowOpen() and videoInput.isOkay:
       self.context.controller.pollInput()
+      if self.context.controller.doQuit:
+        self.context.renderer.quit()
+        break
+      
       self.context.renderer.startDraw()
       if not self.experimentalMode:
         imageBlitter.render()
@@ -155,25 +159,26 @@ class Main:
       self.context.renderer.endDraw()
       
       # ** Task-specific logic here (since transforms are computed during draw calls)
-      if self.task == 1:
-        # *** Task 1: Check if the transforms on cursor and target object are close enough
-        rmat_diff = self.target.transform[0:3, 0:3] - self.cursor.transform[0:3, 0:3]
-        #self.logger.info("Rotation difference matrix:-\n{}".format(rmat_diff))
-        rmat_sumAbsDiff = np.sum(np.abs(rmat_diff))
-        #self.logger.debug("Rotation, sum of absolute differences: {}".format(rmat_sumAbsDiff)) 
-        # TODO use cv2.Rodrigues to compute individual x, y, z rotation components and then compare
-        tvec_diff = self.target.transform[0:3, 3] - self.cursor.transform[0:3, 3]
-        #self.logger.info("Translation difference vector:-\n{}".format(tvec_diff))
-        tvec_normDiff = np.linalg.norm(tvec_diff, ord=2)
-        #self.logger.debug("Translation, L2-norm of differences  : {}".format(tvec_normDiff))
-        
-        self.task1Out.fill(255)
-        cv2.putText(self.task1Out, "r: {:5.2f}".format(rmat_sumAbsDiff), (8, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 200), 2)
-        cv2.putText(self.task1Out, "t: {:5.2f}".format(tvec_normDiff), (8, 54), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 100, 100), 2)
-        if rmat_sumAbsDiff <= 0.1 and tvec_normDiff <= 1.0:
-          cv2.rectangle(self.task1Out, (2, 2), (self.task1Out.shape[1] - 3, self.task1Out.shape[0] - 3), (100, 200, 100), 3)
-        cv2.imshow("Task 1", self.task1Out)
-        cv2.waitKey(1)
+      if self.taskActive:
+        if self.task == 1:
+          # *** Task 1: Check if the transforms on cursor and target object are close enough
+          rmat_diff = self.target.transform[0:3, 0:3] - self.cursor.transform[0:3, 0:3]
+          #self.logger.info("Rotation difference matrix:-\n{}".format(rmat_diff))
+          rmat_sumAbsDiff = np.sum(np.abs(rmat_diff))
+          #self.logger.debug("Rotation, sum of absolute differences: {}".format(rmat_sumAbsDiff)) 
+          # TODO use cv2.Rodrigues to compute individual x, y, z rotation components and then compare
+          tvec_diff = self.target.transform[0:3, 3] - self.cursor.transform[0:3, 3]
+          #self.logger.info("Translation difference vector:-\n{}".format(tvec_diff))
+          tvec_normDiff = np.linalg.norm(tvec_diff, ord=2)
+          #self.logger.debug("Translation, L2-norm of differences  : {}".format(tvec_normDiff))
+          
+          self.task1Out.fill(255)
+          cv2.putText(self.task1Out, "r: {:5.2f}".format(rmat_sumAbsDiff), (8, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 200), 2)
+          cv2.putText(self.task1Out, "t: {:5.2f}".format(tvec_normDiff), (8, 54), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 100, 100), 2)
+          if rmat_sumAbsDiff <= 0.1 and tvec_normDiff <= 1.0:
+            cv2.rectangle(self.task1Out, (2, 2), (self.task1Out.shape[1] - 3, self.task1Out.shape[0] - 3), (100, 200, 100), 3)
+          cv2.imshow(self.task1WindowName, self.task1Out)
+          cv2.waitKey(1)  # NOTE might slow things down
     
     # * Clean up
     if haveCV:

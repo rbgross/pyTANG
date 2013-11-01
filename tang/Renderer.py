@@ -15,7 +15,7 @@ from Shader import Shader
 class Renderer:
     def __init__(self):
         self.context = Context.getInstance()  # NOTE must be initialized
-        
+
         self.windowWidth = 640
         self.windowHeight = 480
 
@@ -61,18 +61,19 @@ class Renderer:
         glfw.OpenWindowHint(glfw.WINDOW_NO_RESIZE, GL_TRUE)
         
         try:  # in case we fail to init this version
-          glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
+            glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
         except Exception as e:
-          print "Renderer.initialize(): Failed to initialize OpenGL: {}".format(str(e))
-          print "Renderer.initialize(): Trying lower version..."
-          glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 0)  # 3.0
-          glfw.OpenWindowHint(glfw.OPENGL_PROFILE, 0)  # 3.0
-          glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_FALSE)  # 3.0
-          glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
-          print "Renderer.initialize(): It worked!"
+            print "Renderer.initialize(): Failed to initialize OpenGL: {}".format(str(e))
+            print "Renderer.initialize(): Trying lower version..."
+            glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 0)  # 3.0
+            glfw.OpenWindowHint(glfw.OPENGL_PROFILE, 0)  # 3.0
+            glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_FALSE)  # 3.0
+            glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
+            print "Renderer.initialize(): It worked!"
         
         glfw.SetWindowTitle("TANG")
-
+        glfw.SetWindowCloseCallback(self.onWindowClose)
+        
         glEnable(GL_DEPTH_TEST)
         glEnable(GL_CULL_FACE)
         
@@ -84,4 +85,9 @@ class Renderer:
         print "Renderer.initialize(): GLSL version {}".format(self.context.GLSL_version_string)
 
     def quit(self):
-        glfw.CloseWindow()
+        glfw.CloseWindow()  # NOTE does not generate onWindowClose callback
+        #glfw.Terminate()
+
+    def onWindowClose(self):
+        #print "Renderer.onWindowClose()"  # [debug]
+        return True  # nothing more needs to be done; but an event could be generated
