@@ -19,7 +19,7 @@ class MatchTargetTask(Task):
     self.showMatchWindow = True  # to be treated as a constant flag
     if self.showMatchWindow:
       self.imageOut = np.zeros((64, 128, 3), dtype=np.uint8)
-      self.windowName = "Match target"
+      self.windowName = "Match error"
     
     # * Load scene fragments
     self.context.scene.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))  # cursor
@@ -60,8 +60,8 @@ class MatchTargetTask(Task):
     
     if self.showMatchWindow:
       self.imageOut.fill(255)
-      cv2.putText(self.imageOut, "r: {:5.2f}".format(rmat_sumAbsDiff), (8, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 200), 2)
-      cv2.putText(self.imageOut, "t: {:5.2f}".format(tvec_normDiff), (8, 54), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 100, 100), 2)
+      cv2.putText(self.imageOut, "t: {:5.2f}".format(tvec_normDiff), (8, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (200, 100, 100), 2)
+      cv2.putText(self.imageOut, "r: {:5.2f}".format(rmat_sumAbsDiff), (8, 54), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (100, 100, 200), 2)
       if rmat_sumAbsDiff <= 0.1 and tvec_normDiff <= 1.0:
         cv2.rectangle(self.imageOut, (2, 2), (self.imageOut.shape[1] - 3, self.imageOut.shape[0] - 3), (100, 200, 100), 3)
       cv2.imshow(self.windowName, self.imageOut)

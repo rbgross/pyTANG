@@ -27,6 +27,7 @@ from Renderer import Renderer
 from Scene import Scene
 from Controller import Controller
 from task.MatchTargetTask import MatchTargetTask
+from task.RecordPoseTask import RecordPoseTask
 if haveCV:
   from vision.input import VideoInput
   from vision.gl import FrameProcessorGL
@@ -67,7 +68,7 @@ class Main:
     #self.context.scene.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
     
     # * Initialize task (may load further scene fragments, including task-specific tools)
-    self.context.task = MatchTargetTask()  # choose which task here (TODO make this a command-line arg./config param.?)
+    self.context.task = RecordPoseTask()  # choose which task here (TODO make this a command-line arg./config param.?)
     
     # * Finalize scene (resolves scene fragments into one hierarchy, builds ID-actor mapping)
     self.context.scene.finalize()  # NOTE should be called after all read*() methods have been called on scene
@@ -78,79 +79,106 @@ class Main:
     
     # * Activate task (may try to find task-specific tools in scene)
     self.context.task.activate()
+    
+    # * Open camera/input file
+    self.logger.info("Input device/file: {}".format(self.context.cameraDevice))
+    self.camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
+    # TODO move some more options (e.g. *video*) to context; introduce config.yaml-like solution with command-line overrides
+    self.options={ 'gui': self.context.gui, 'debug': self.context.debug,
+                   'isVideo': self.context.isVideo, 'loopVideo': True, 'syncVideo': True, 'videoFPS': 'auto',
+                   'isImage': self.context.isImage,
+                   'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
+                   'windowWidth': windowWidth, 'windowHeight': windowHeight }
+    self.context.videoInput = VideoInput(self.camera, self.options)
+    # TODO If live camera, let input image stabilize by eating up some frames, then configure camera
+    #   e.g. on Mac OS, use uvc-ctrl to turn off auto-exposure:
+    #   $ ./uvc-ctrl -s 1 3 10
+    
+    # * Create image blitter
+    self.context.imageBlitter = FrameProcessorGL(self.options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
+    # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
+    
+    # * Setup tracking
+    self.context.cubeTracker = CubeTracker(self.options)  # specialized cube tracker, available in context to allow access to cubeTracker's input and output images etc.
+    if self.cubeComponent is not None:
+      self.logger.info("Tracking setup: Cube has {} markers".format(len(self.cubeComponent.markers)))
+      self.context.cubeTracker.addMarkersFromTrackable(self.cubeComponent)
   
   def run(self):
-    # * Open camera/input file and start vision loop, if OpenCV is available
-    if haveCV:
-      self.logger.info("Input device/file: {}".format(self.context.cameraDevice))
-      camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
-      # TODO move some more options (e.g. *video*) to context; introduce config.yaml-like solution with command-line overrides
-      options={ 'gui': self.context.gui, 'debug': self.context.debug,
-                'isVideo': self.context.isVideo, 'loopVideo': True, 'syncVideo': True, 'videoFPS': 'auto',
-                'isImage': self.context.isImage,
-                'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
-                'windowWidth': windowWidth, 'windowHeight': windowHeight }
-      videoInput = VideoInput(camera, options)
-      imageBlitter = FrameProcessorGL(options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
-      # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
-      cubeTracker = CubeTracker(options)  # specialized cube tracker
-      self.context.cubeTracker = cubeTracker  # to allow access to cubeTracker's input and output images etc.
-      
-      # TODO let input image stabilize by eating up some frames, then configure camera
-      #   e.g. on Mac OS, use uvc-ctrl to turn off auto-exposure:
-      #   $ ./uvc-ctrl -s 1 3 10
-      
-      # Setup tracking
-      if self.cubeComponent is not None:
-        self.logger.info("Cube has {} markers".format(len(self.cubeComponent.markers)))
-        cubeTracker.addMarkersFromTrackable(self.cubeComponent)
-      
-      cubeTracker.initialize(videoInput.image, time.time())
-      imageBlitter.initialize(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, time.time())
-      
-      def visionLoop():
-        self.logger.info("[Vision loop] Starting...")
-        if videoInput.isVideo:
-          videoInput.resetVideo()
-        while self.context.renderer.windowOpen() and videoInput.isOkay:
-          if videoInput.read():
-            cubeTracker.process(videoInput.image, time.time())  # NOTE this can be computationally expensive
-            imageBlitter.process(cubeTracker.imageOut if cubeTracker.imageOut is not None else videoInput.image, time.time())
-            
-            # Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
-            if not self.context.controller.manualControl:
-              self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(cubeTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
-              self.context.scene.transform[0:3, 3] = cubeTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
-        self.logger.info("[Vision loop] Done.")
-      
-      visionThread = Thread(target=visionLoop)
-      visionThread.start()
+    # * Reset system-wide timer
+    self.context.resetTime()
     
-    # * Start GL render loop
-    while self.context.renderer.windowOpen() and videoInput.isOkay:
+    # * Start CV loop on separate thread
+    # ** Initialize CV processors (NOTE videoInput should already have read an image)
+    self.context.cubeTracker.initialize(self.context.videoInput.image, self.context.timeNow)
+    self.context.imageBlitter.initialize(
+      self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
+      else self.context.videoInput.image,
+      self.context.timeNow)
+    # ** Create new thread and start it
+    cvThread = Thread(target=self.cvLoop)
+    cvThread.start()
+    time.sleep(0.001)  # yield to the new thread
+    
+    # * Start GL loop on main thread (NOTE start GL after CV so that imageBlitter has a chance to get an image)
+    self.glLoop()
+    
+    # * Clean up
+    self.logger.info("Waiting on CV thread to finish...")
+    cvThread.join()
+    self.logger.info("Cleaning up...")
+    if not self.context.isImage:
+      self.camera.release()
+    self.logger.info("Done.")
+  
+  def cvLoop(self):
+    # * CV process loop
+    if self.context.videoInput.isVideo:
+      self.context.videoInput.resetVideo()
+    self.logger.info("[CV loop] Starting...")
+    while self.context.renderer.windowOpen() and self.context.videoInput.isOkay:
+      # ** Read a frame
+      if self.context.videoInput.read():
+        # *** If valid frame is available, perform tracking
+        self.context.cubeTracker.process(self.context.videoInput.image, self.context.timeNow)  # NOTE this can be computationally expensive
+        
+        # *** Cache CV output image (normally the raw camera input) for blitting in GL loop
+        self.context.imageBlitter.process(
+          self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
+          else self.context.videoInput.image,
+          self.context.timeNow)
+        
+        # *** Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
+        if not self.context.controller.manualControl:
+          self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(self.context.cubeTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
+          self.context.scene.transform[0:3, 3] = self.context.cubeTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
+    self.logger.info("[CV loop] Done.")
+  
+  def glLoop(self):
+    # * GL render loop
+    self.logger.info("[GL loop] Starting...")
+    while self.context.renderer.windowOpen() and self.context.videoInput.isOkay:
+      # ** Context updates (mainly time)
+      self.context.update()
+      
+      # ** Controller updates
       self.context.controller.pollInput()
       if self.context.controller.doQuit:
         self.context.renderer.quit()
         break
       
+      # ** Render background image and scene
       self.context.renderer.startDraw()
       if not self.experimentalMode:
-        imageBlitter.render()
+        self.context.imageBlitter.render()
       self.context.scene.draw()
       self.context.renderer.endDraw()
       
-      # ** Task-specific logic here (since transforms are computed during draw calls)
+      # ** Task-specific updates (here, since transforms are computed during draw calls)
       if self.context.task.active:
         self.context.task.update()
-    
-    # * Clean up
-    if haveCV:
-      self.logger.info("Waiting on vision thread to finish...")
-      visionThread.join()
-      self.logger.info("Cleaning up...")
-      if not self.context.isImage:
-        camera.release()
-    self.logger.info("Done.")
+    self.logger.info("[GL loop] Done.")
+
 
 def usage():
   print "Usage: {} [<resource_path> [<camera_device> | <video_filename> | <image_filename>]]".format(sys.argv[0])

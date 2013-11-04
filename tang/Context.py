@@ -1,6 +1,8 @@
 import sys
 import os
+import time
 import logging.config
+
 from vision.util import isImageFile
 
 class Context:
@@ -59,6 +61,26 @@ class Context:
         else:
           self.isVideo = True
           self.isImage = False
+    
+    # * Timing
+    self.resetTime()
+  
+  def resetTime(self):
+    self.timeStart = time.time()
+    self.timeNow = 0.0
+    self.isPaused = False
+    self.timePaused = self.timeStart
+  
+  def update(self):
+    self.timeNow = time.time() - self.timeStart
+  
+  def pause(self):
+    self.timePaused = time.time()
+    self.isPaused = True
+  
+  def resume(self):
+    self.timeStart += time.time() - self.timePaused
+    self.isPaused = False
   
   def getResourcePath(self, subdir, filename):
     return os.path.abspath(os.path.join(self.resPath, subdir, filename))
