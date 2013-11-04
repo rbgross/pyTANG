@@ -1,12 +1,14 @@
-import time
+import sys
 import os
+import time
+import numpy as np
+import logging
+import math
+from ctypes import *
+
 from OpenGL.arrays.vbo import VBO
 from OpenGL.GL import *
 import glfw
-from ctypes import *
-import sys
-import math
-import numpy as np
 import hommat as hm
 
 from Context import Context
@@ -15,6 +17,7 @@ from Shader import Shader
 class Renderer:
     def __init__(self):
         self.context = Context.getInstance()  # NOTE must be initialized
+        self.logger = logging.getLogger(__name__)
 
         self.windowWidth = 640
         self.windowHeight = 480
@@ -63,13 +66,13 @@ class Renderer:
         try:  # in case we fail to init this version
             glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
         except Exception as e:
-            print "Renderer.initialize(): Failed to initialize OpenGL: {}".format(str(e))
-            print "Renderer.initialize(): Trying lower version..."
+            self.logger.warn("Failed to initialize OpenGL: {}".format(str(e)))
+            self.logger.warn("Trying lower version...")
             glfw.OpenWindowHint(glfw.OPENGL_VERSION_MINOR, 0)  # 3.0
             glfw.OpenWindowHint(glfw.OPENGL_PROFILE, 0)  # 3.0
             glfw.OpenWindowHint(glfw.OPENGL_FORWARD_COMPAT, GL_FALSE)  # 3.0
             glfw.OpenWindow(self.windowWidth, self.windowHeight, 0, 0, 0, 0, 24, 8, glfw.WINDOW)
-            print "Renderer.initialize(): It worked!"
+            self.logger.warn("OpenGL fallback to lower version worked")
         
         glfw.SetWindowTitle("TANG")
         glfw.SetWindowCloseCallback(self.onWindowClose)
@@ -80,14 +83,14 @@ class Renderer:
         # Find out OpenGL version, and store for future use
         self.context.GL_version_string = glGetString(GL_VERSION).split(' ')[0]  # must have version at the beginning, e.g. "3.0 Mesa 9.x.x" to extract "3.0"
         self.context.GL_version_major, self.context.GL_version_minor = list(int(x) for x in self.context.GL_version_string.split('.'))[0:2]  # must have only MAJOR.MINOR
-        print "Renderer.initialize(): OpenGL version {}.{}".format(self.context.GL_version_major, self.context.GL_version_minor)
+        self.logger.info("OpenGL version {}.{}".format(self.context.GL_version_major, self.context.GL_version_minor))
         self.context.GLSL_version_string = glGetString(GL_SHADING_LANGUAGE_VERSION).split(' ')[0].replace('.', '')  # "1.50" => "150"
-        print "Renderer.initialize(): GLSL version {}".format(self.context.GLSL_version_string)
+        self.logger.info("GLSL version {}".format(self.context.GLSL_version_string))
 
     def quit(self):
         glfw.CloseWindow()  # NOTE does not generate onWindowClose callback
         #glfw.Terminate()
 
     def onWindowClose(self):
-        #print "Renderer.onWindowClose()"  # [debug]
+        #self.logger.debug("Renderer.onWindowClose()")
         return True  # nothing more needs to be done; but an event could be generated

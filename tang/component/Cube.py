@@ -44,8 +44,6 @@ class Cube(Component, Trackable):
       marker.worldPos = vertex
       self.markers.append(marker)
     
-    print "Cube.__init__(): len(markers) =", len(self.markers)
-    
     # Add edges
     for u, v in self.edges:
       if u < len(self.vertices) and v < len(self.vertices) and self.vertices[u] is not None and self.vertices[v] is not None:  # sanity check

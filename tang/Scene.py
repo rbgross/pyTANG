@@ -1,15 +1,18 @@
-import time
+import sys
 import os
+import time
+import numpy as np
+import logging
+from ctypes import *
+import xml.etree.ElementTree as ET
+
 from OpenGL.arrays.vbo import VBO
 from OpenGL.GL import *
 import glfw
-from ctypes import *
-import sys
-import numpy as np
 import hommat as hm
-import xml.etree.ElementTree as ET
 
 from Context import Context
+from Renderer import Renderer
 from Light import Light
 from Actor import Actor
 from ActorFactory import ActorFactory
@@ -17,7 +20,9 @@ from ActorFactory import ActorFactory
 class Scene:
     def __init__(self):
         self.context = Context.getInstance()  # NOTE must contain renderer
+        assert hasattr(self.context, 'renderer') and isinstance(self.context.renderer, Renderer), "Context does not contain renderer of correct type"
         
+        self.logger = logging.getLogger(__name__)
         self.hideCube = False
         self.transform = hm.identity()
         self.light = Light(self.context.renderer)
@@ -25,23 +30,13 @@ class Scene:
         self.actorFactory = ActorFactory(self.context.renderer)
         self.actors = []
         self.actorsById = dict()
-        #self.readData(self.context.getResourcePath('data', 'PerspectiveScene.txt'))  # deprecated; load from XML instead
-        #self.writeXML(filename + '.xml')  # enable this to convert a .txt scene file to XML (NOTE will write to file in <resources>/data/!)
         
         #self.readXML(self.context.getResourcePath('data', 'default-scene.xml'))  # the cube and a dragon
-        self.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))  # just the cube
-        #self.readXML(self.context.getResourcePath('data', 'BP3D-FMA7088-heart.xml'))  # BodyParts3D heart model hierarchy
-        #self.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
-        self.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))  # cursor
-        self.readXML(self.context.getResourcePath('data', 'StaticDragonScene.xml'))  # target
-        #self.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
-        
-        self.finalize()  # should be called after all read*() methods have been called
-        print "Scene.__init__(): Scene has {} top-level actor(s)".format(len(self.actors))
-        #self.dump()  # [debug]
+        #self.readData(self.context.getResourcePath('data', 'PerspectiveScene.txt'))  # deprecated; load from XML instead
+        #self.writeXML(filename + '.xml')  # enable this to convert a .txt scene file to XML (NOTE will write to file in <resources>/data/!)
     
     def readData(self, filename):
-        print "Scene.readData(): Parsing file:", filename
+        self.logger.info("Parsing file: {}".format(filename))
         f = open(filename, 'r')
         for line in f: 
             s = line.split()
@@ -60,11 +55,11 @@ class Scene:
                 self.actors.append(actor)
     
     def readXML(self, filename):
-        print "Scene.readXML(): Parsing file:", filename
+        self.logger.info("Parsing file: {}".format(filename))
         xmlTree = ET.parse(filename)
         rootElement = xmlTree.getroot()
-        #print "Scene.readXML(): Source XML tree:-"
-        #ET.dump(rootElement)
+        #print "Scene.readXML(): Source XML tree:-"  # [debug]
+        #ET.dump(rootElement)  # [debug]
         
         # Root element must be a <scene>, containing one or more <Actor> elements
         # TODO Define shared resources (shaders, meshes, etc.) in a <defs> section (and then actors in <actors> or <group> sections?)
@@ -76,13 +71,13 @@ class Scene:
                     if actor.id is not None:
                         self.actorsById[actor.id] = actor
         else:
-            print "Scene.readXML(): Bad XML: Root must be a <scene> element"
+            self.logger.warn("Bad XML: Root must be a <scene> element!")
     
     def finalize(self):
         """Finalize scene hierarchy by resolving parent-child relations (for current top-level actors only)."""
         
         if 'cube' not in self.actorsById:
-            print "Scene.finalize(): WARNING: No cube in scene!"
+            self.logger.warn("No cube in scene!")
         
         topLevel = []
         for actor in self.actors:
@@ -91,9 +86,12 @@ class Scene:
                     self.actorsById[actor.parent].children.append(actor)
                     continue  # actor should no longer be kept in top-level
                 except KeyError:
-                    print "Scene.finalize(): WARNING: Parent id \"{}\" not found!".format(actor.parent)
+                    self.logger.warn("Parent id \"{}\" not found!".format(actor.parent))
             topLevel.append(actor)
         self.actors = topLevel
+        
+        self.logger.info("Scene has {} top-level actor(s)".format(len(self.actors)))
+        #self.dump()  # [debug]
     
     def writeXML(self, filename):
         xmlTree = ET.ElementTree(ET.Element('scene'))
@@ -101,7 +99,7 @@ class Scene:
         for actor in self.actors:
             rootElement.append(actor.toXMLElement())
         xmlTree.write(open(self.context.getResourcePath('data', filename), 'w'))
-        print "Scene.writeXML(): Written to file:", filename
+        self.logger.info("Written to file: {}".format(filename))
     
     def draw(self):
         for actor in self.actors:

@@ -49,10 +49,12 @@ class Controller:
             self.context.scene.transform = hm.translation(hm.identity(), [0, 0, 60])
             mouseX, mouseY = glfw.GetMousePos()
             self.calcArcBallVector(mouseX, mouseY)
+            time.sleep(0.5)  # TODO prevent multiple key-presses properly
 
         if glfw.GetKey('P'):
             print "Stopping manual control"
             self.manualControl = False
+            time.sleep(0.5)  # TODO prevent multiple key-presses properly
         
         if glfw.GetKey('A') and self.manualControl:
             self.context.scene.transform = np.dot(hm.translation(hm.identity(), [0, 0, -60]), self.context.scene.transform)
@@ -98,7 +100,7 @@ class Controller:
             time.sleep(0.5)  # TODO prevent multiple key-presses properly
         
         if glfw.GetKey('T'):
-            self.context.main.toggleTask()
+            self.context.task.toggle()
             time.sleep(0.5)  # TODO prevent multiple key-presses properly
         
         if glfw.GetKey('I'):
