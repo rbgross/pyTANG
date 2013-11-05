@@ -16,10 +16,10 @@ from base import FrameProcessor
 # Globals
 cameraWidth = 640
 cameraHeight = 480
+defaultVideoFPS = 30.0
 
 class VideoInput:
   """Abstracts away the handling of recorded video files and live camera as input."""
-  # TODO Incorporate option of syncing video playback to realtime
   
   def __init__(self, camera, options):
     # * Obtain video source (camera) and optional parameters
@@ -61,6 +61,9 @@ class VideoInput:
           except ValueError:
             self.logger.warning("Invalid video FPS \"{}\"; switching to auto".format(self.videoFPS))
             self.videoFPS = self.camera.get(cv.CV_CAP_PROP_FPS)
+        if self.videoFPS <= 0.0:
+          self.logger.warning("Could not obtain a valid video FPS value (got: {}); using default: {}".format(self.videoFPS, defaultVideoFPS))
+          self.videoFPS = defaultVideoFPS
         self.videoDuration = self.videoNumFrames / self.videoFPS
         self.logger.info("Video [init]: {:.3f} secs., {} frames at {:.2f} fps{}".format(self.videoDuration, self.videoNumFrames, self.videoFPS, (" (sync target)" if self.syncVideo else "")))
         if self.syncVideo:
