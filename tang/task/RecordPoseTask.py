@@ -13,6 +13,9 @@ class RecordPoseTask(Task):
     # NOTE Scene must be initialized at this point
     Task.__init__(self)
     self.cursor = None
+    self.outFile = None
+    self.poseRecordHeader = "time\tframe\ttrans_x\ttrans_y\ttrans_z\trot_x\trot_y\trot_z\n"
+    self.poseRecordFormat = "{timeNow}\t{frameCount}\t{tvec[0]}\t{tvec[1]}\t{tvec[2]}\t{rvec[0]}\t{rvec[1]}\t{rvec[2]}\n"
     self.lastFrameCount = -1
     self.showPoseWindow = True  # to be treated as a constant flag
     if self.showPoseWindow:
@@ -25,6 +28,9 @@ class RecordPoseTask(Task):
       self.logger.warn("[RecordPoseTask] Cursor object not found; task could not be initialized")
       return
     self.cursor.visible = True
+    self.outFile = open(self.context.getResourcePath("../out", "pose.dat"), "w")  # TODO change to getOutputPath()?
+    self.outFile.write(self.poseRecordHeader)
+    self.lastFrameCount = -1
     if self.showPoseWindow:
       self.imageOut.fill(255)
       cv2.imshow(self.windowName, self.imageOut)
@@ -32,30 +38,37 @@ class RecordPoseTask(Task):
     Task.activate(self)
   
   def deactivate(self):
-    Task.deactivate(self)
-    self.cursor.visible = False
-    if self.showPoseWindow:
-      cv2.destroyWindow(self.windowName)
+    if self.active:
+      Task.deactivate(self)
+      self.cursor.visible = False
+      if self.outFile is not None and not self.outFile.closed:
+        self.outFile.close()
+      if self.showPoseWindow:
+        cv2.destroyWindow(self.windowName)
   
   def update(self):
     if self.context.videoInput.frameCount != self.lastFrameCount:
       # Get translation vector
       tvec = self.cursor.transform[0:3, 3]
-      #self.logger.debug("Translation vector:-\n{}".format(tvec))
+      #self.logger.info("Translation vector: {}".format(tvec))  # [debug]
       
       # Get rotation vector
       rmat = self.cursor.transform[0:3, 0:3]
       #self.logger.debug("Rotation matrix:-\n{}".format(rmat))
-      rvec = np.float32([0.0, 0.0, 0.0])  # TODO use cv2.Rodrigues to get individual rotation vector (i.e. x, y, z components)
+      rvec, _ = cv2.Rodrigues(rmat)  # get rotation vector (i.e. individual x, y, z components)
+      rvec.shape = (3,)  # reshape to 1x3 vector
+      #self.logger.info("Rotation vector: {}".format(rvec))  # [debug]
       
-      # TODO Record pose (translation & rotation) to file/stdout
-      poseRecord = "{timeNow}\t{frameCount}\t{tvec[0]}\t{tvec[1]}\t{tvec[2]}\t{rvec[0]}\t{rvec[1]}\t{rvec[2]}".format(
+      # Record pose (translation & rotation) to file
+      poseRecord = self.poseRecordFormat.format(
         timeNow=self.context.timeNow,
         frameCount=self.context.videoInput.frameCount,
         tvec=tvec,
         rvec=rvec)
       #print poseRecord  # [debug]
+      self.outFile.write(poseRecord)
       
+      # Show pose values in GUI
       if self.showPoseWindow:
         self.imageOut.fill(255)
         cv2.putText(self.imageOut, "t: {vec[0]:+7.2f}, {vec[1]:+7.2f}, {vec[2]:+7.2f}".format(vec=tvec), (5, 21), cv2.FONT_HERSHEY_DUPLEX, 0.6, (200, 100, 100), 1)

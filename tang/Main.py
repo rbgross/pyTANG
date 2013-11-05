@@ -77,9 +77,6 @@ class Main:
     self.cubeActor = self.context.scene.findActorById('cube')
     self.cubeComponent = self.cubeActor.components['Cube'] if self.cubeActor is not None else None
     
-    # * Activate task (may try to find task-specific tools in scene)
-    self.context.task.activate()
-    
     # * Open camera/input file
     self.logger.info("Input device/file: {}".format(self.context.cameraDevice))
     self.camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
@@ -105,6 +102,9 @@ class Main:
       self.context.cubeTracker.addMarkersFromTrackable(self.cubeComponent)
   
   def run(self):
+    # * Activate task (may try to find task-specific tools in scene)
+    self.context.task.activate()
+    
     # * Reset system-wide timer
     self.context.resetTime()
     
@@ -127,6 +127,8 @@ class Main:
     self.logger.info("Waiting on CV thread to finish...")
     cvThread.join()
     self.logger.info("Cleaning up...")
+    if self.context.task.active:
+      self.context.task.deactivate()  # NOTE required for some tasks (to close files, etc.)
     if not self.context.isImage:
       self.camera.release()
     self.logger.info("Done.")
