@@ -82,7 +82,7 @@ class Main:
     self.camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
     # TODO move some more options (e.g. *video*) to context; introduce config.yaml-like solution with command-line overrides
     self.options={ 'gui': self.context.gui, 'debug': self.context.debug,
-                   'isVideo': self.context.isVideo, 'loopVideo': True, 'syncVideo': True, 'videoFPS': 'auto',
+                   'isVideo': self.context.isVideo, 'loopVideo': False, 'syncVideo': True, 'videoFPS': 'auto',
                    'isImage': self.context.isImage,
                    'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                    'windowWidth': windowWidth, 'windowHeight': windowHeight }

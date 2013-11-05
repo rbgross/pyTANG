@@ -84,18 +84,28 @@ class VideoInput:
   
   def readFrame(self):
     """Read a frame from camera/video. Not meant to be called directly."""
-    if self.isVideo and self.loopVideo and self.frameCount >= self.videoNumFrames:
+    # * If this is a video and we've reached the end
+    if self.isVideo and self.frameCount >= self.videoNumFrames:
+      # ** Report actual frames delivered and other useful statistics
       framesDelivered = self.frameCount + self.videoFramesRepeated - self.videoFramesSkipped if self.syncVideo else self.frameCount
-      self.logger.info("Video [loop]: {:.3f} secs., {} frames at {:.2f} fps{}".format(
+      self.logger.info("Video [end]: {:.3f} secs., {} frames at {:.2f} fps{}".format(
         self.timeDelta,
         framesDelivered,
         (framesDelivered / self.timeDelta) if self.timeDelta > 0.0 else 0.0,
         (" ({} repeated, {} skipped)".format(self.videoFramesRepeated, self.videoFramesSkipped) if self.syncVideo else "")))
-      self.resetVideo()
-      if self.syncVideo:
-        self.videoFramesRepeated = 0
-        self.videoFramesSkipped = 0
+      # ** If looping is enabled
+      if self.loopVideo:
+        # *** Then reset video
+        self.resetVideo()
+        if self.syncVideo:
+          self.videoFramesRepeated = 0
+          self.videoFramesSkipped = 0
+      else:
+        # *** Else do nothing (don't try to read further frames - this can incorrectly increment counter)
+        self.isOkay = False
+        return
     
+    # * Read next frame and increment counter
     self.isOkay, self.image = self.camera.read()
     self.frameCount += 1
   
@@ -104,7 +114,9 @@ class VideoInput:
     self.timeNow = time.time()
     self.timeDelta = self.timeNow - self.timeStart
     
-    if not self.isImage:
+    if self.isImage:
+      self.frameCount += 1  # artificially increment frame counter, as if staring at an unchanging video stream
+    else:
       if self.isVideo and self.syncVideo:
         targetFrameCount = self.videoFPS * self.timeDelta
         diffFrameCount = targetFrameCount - self.frameCount
@@ -113,7 +125,7 @@ class VideoInput:
           self.videoFramesRepeated += 1
         else:
           self.videoFramesSkipped += min(int(diffFrameCount), self.videoNumFrames - self.frameCount)
-          while self.frameCount < targetFrameCount:
+          while self.isOkay and self.frameCount < targetFrameCount:
             self.readFrame()
             if self.frameCount == 1:  # a video reset occurred
               break

@@ -17,7 +17,7 @@ class RecordPoseTask(Task):
     self.poseRecordHeader = "time\tframe\ttrans_x\ttrans_y\ttrans_z\trot_x\trot_y\trot_z\n"
     self.poseRecordFormat = "{timeNow}\t{frameCount}\t{tvec[0]}\t{tvec[1]}\t{tvec[2]}\t{rvec[0]}\t{rvec[1]}\t{rvec[2]}\n"
     self.lastFrameCount = -1
-    self.showPoseWindow = True  # to be treated as a constant flag
+    self.showPoseWindow = False  # to be treated as a constant flag; may slow down recording
     if self.showPoseWindow:
       self.imageOut = np.zeros((50, 300, 3), dtype=np.uint8)
       self.windowName = "Cursor pose"
