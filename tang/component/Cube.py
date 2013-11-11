@@ -24,10 +24,10 @@ class Cube(Component, Trackable):
     # Scale vertices of base cube, specify edges, and initialize list of markers
     self.vertices = cube_vertices * self.scale
     self.vertex_colors = cube_vertex_colors
-    self.vertex_scale = np.float32([3.0, 3.0, 3.0])  # NOTE for rendering only
+    self.vertex_scale = 0.3 * self.scale  # NOTE for rendering only, depends on 3D model
     
     self.edges = cube_edges
-    self.edge_scale = np.float32([1.0, 1.0, 1.0])  # NOTE for rendering only
+    self.edge_scale = 0.1 * self.scale  # NOTE for rendering only, depends on 3D model
     self.edge_color = np.float32([0.8, 0.7, 0.5])  # NOTE for rendering only
     # TODO make some of these parameters come from XML
     

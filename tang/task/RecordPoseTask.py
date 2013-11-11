@@ -14,8 +14,8 @@ class RecordPoseTask(Task):
     Task.__init__(self)
     self.cursor = None
     self.outFile = None
-    self.poseRecordHeader = "time\tframe\ttrans_x\ttrans_y\ttrans_z\trot_x\trot_y\trot_z\n"
-    self.poseRecordFormat = "{timeNow}\t{frameCount}\t{tvec[0]}\t{tvec[1]}\t{tvec[2]}\t{rvec[0]}\t{rvec[1]}\t{rvec[2]}\n"
+    self.poseRecordHeader = "frame\ttime\ttrans_x\ttrans_y\ttrans_z\trot_x\trot_y\trot_z\n"
+    self.poseRecordFormat = "{frameCount}\t{timeNow}\t{tvec[0]}\t{tvec[1]}\t{tvec[2]}\t{rvec[0]}\t{rvec[1]}\t{rvec[2]}\n"
     self.lastFrameCount = -1
     self.showPoseWindow = False  # to be treated as a constant flag; may slow down recording
     if self.showPoseWindow:
@@ -61,8 +61,8 @@ class RecordPoseTask(Task):
       
       # Record pose (translation & rotation) to file
       poseRecord = self.poseRecordFormat.format(
-        timeNow=self.context.timeNow,
         frameCount=self.context.videoInput.frameCount,
+        timeNow=self.context.timeNow,
         tvec=tvec,
         rvec=rvec)
       #print poseRecord  # [debug]

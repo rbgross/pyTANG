@@ -412,7 +412,7 @@ class ColorMarkerTracker(FrameProcessor):
 
 class CubeTracker(ColorMarkerTracker):
   inactiveThreshold = 1.2  # how many seconds to allow the cube to remain invisible before marking it inactive
-  cube_origin = np.float32([[0.0], [0.0], [85.0]])  # expected cube origin
+  cube_origin = np.float32([[0.0], [1.72], [60.92]])  # expected cube origin
   tvec_maxdiff_origin = 40.0  # maximum distance from origin for a valid detection
   tvec_maxdiff_last = 5.0  # maximum distance from last known position for a valid detection
   rvec_maxdiff_last = pi  # maximum combined (L2-norm) angle difference from last known pose
