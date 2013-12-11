@@ -26,6 +26,7 @@ from Context import Context
 from Renderer import Renderer
 from Scene import Scene
 from Controller import Controller
+from task.Task import Task
 from task.MatchTargetTask import MatchTargetTask
 from task.RecordPoseTask import RecordPoseTask
 if haveCV:
@@ -63,12 +64,13 @@ class Main:
     # * Initialize scene and load base scene fragments, including tools
     self.context.scene = Scene()
     self.context.scene.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))  # just the cube
+    #self.context.scene.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))  # Stanford Dragon
     #self.context.scene.readXML(self.context.getResourcePath('data', 'BP3D-FMA7088-heart.xml'))  # BodyParts3D heart model hierarchy
     #self.context.scene.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
     #self.context.scene.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
     
     # * Initialize task (may load further scene fragments, including task-specific tools)
-    self.context.task = RecordPoseTask()  # choose which task here (TODO make this a command-line arg./config param.?)
+    self.context.task = Task()  # e.g. RecordPoseTask()  # choose which task here (TODO make this a command-line arg./config param. along with which scene files to load?)
     
     # * Finalize scene (resolves scene fragments into one hierarchy, builds ID-actor mapping)
     self.context.scene.finalize()  # NOTE should be called after all read*() methods have been called on scene
