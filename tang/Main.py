@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+"""Tangible Data Exploration.
+
+Usage: ./Main.py [input_source]
+For more options: ./Main.py --help
+
+"""
+
 # Python imports
 import sys
 import os
@@ -47,7 +56,7 @@ class Main:
     self.experimentalMode = False  # TODO change this to a context flag
     
     # * Initialize global context (command line args are parsed by Context)
-    self.context = Context.createInstance(sys.argv)
+    self.context = Context.createInstance(description="Tangible Data Exploration")
     self.context.main = self
     # NOTE Most objects require an initialized context, so do this as soon as possible
     
@@ -80,11 +89,11 @@ class Main:
     self.cubeComponent = self.cubeActor.components['Cube'] if self.cubeActor is not None else None
     
     # * Open camera/input file
-    self.logger.info("Input device/file: {}".format(self.context.cameraDevice))
-    self.camera = cv2.VideoCapture(self.context.cameraDevice) if not self.context.isImage else cv2.imread(self.context.cameraDevice)
+    self.logger.info("Input device/file: {}".format(self.context.options.input_source))
+    self.camera = cv2.VideoCapture(self.context.options.input_source) if not self.context.isImage else cv2.imread(self.context.options.input_source)
     # TODO move some more options (e.g. *video*) to context; introduce config.yaml-like solution with command-line overrides
-    self.options={ 'gui': self.context.gui, 'debug': self.context.debug,
-                   'isVideo': self.context.isVideo, 'loopVideo': False, 'syncVideo': True, 'videoFPS': 'auto',
+    self.options={ 'gui': self.context.options.gui, 'debug': self.context.options.debug,
+                   'isVideo': self.context.isVideo, 'loopVideo': self.context.options.loop_video, 'syncVideo': self.context.options.sync_video, 'videoFPS': self.context.options.video_fps,
                    'isImage': self.context.isImage,
                    'cameraWidth': cameraWidth, 'cameraHeight': cameraHeight,
                    'windowWidth': windowWidth, 'windowHeight': windowHeight }
@@ -156,6 +165,10 @@ class Main:
         if not self.context.controller.manualControl:
           self.context.scene.transform[0:3, 0:3], _ = cv2.Rodrigues(self.context.cubeTracker.rvec)  # convert rotation vector to rotation matrix (3x3) and populate model transformation matrix
           self.context.scene.transform[0:3, 3] = self.context.cubeTracker.tvec[0:3, 0]  # copy in translation vector into 4th column of model transformation matrix
+        
+        # *** Handle OpenCV window events
+        if self.context.options.gui:
+          cv2.waitKey(1)
     self.logger.info("[CV loop] Done.")
   
   def glLoop(self):
@@ -184,16 +197,5 @@ class Main:
     self.logger.info("[GL loop] Done.")
 
 
-def usage():
-  print "Usage: {} [<resource_path> [<camera_device> | <video_filename> | <image_filename>]]".format(sys.argv[0])
-  print "Arguments:"
-  print "  resource_path   Path to \'res\' dir. containing models, shaders, etc."
-  print "  camera_device   Integer specifying camera to read from (default: 0)"
-  print "  video_filename  Path to video file to use instead of live camera"
-  print "  image_filename  Path to static image file to use instead of live camera"
-  print "Note: Only one of camera device or video/image filename should be specified."
-  print
-
 if __name__ == '__main__':
-  usage()
   Main().run()
