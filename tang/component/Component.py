@@ -9,7 +9,7 @@ class Component:
     """Register a Component class for automatic delegation (no subclass lookup - explicit is better than implicit!)."""
     # NOTE Subclasses must be registered via this method in order to be initialized from XML, etc.
     cls.componentTypes[type.__name__] = type
-    print "Component.registerType(): Component type \'" + type.__name__ + "\' registered."
+    #print "Component.registerType(): Component type \'" + type.__name__ + "\' registered."  # [debug]
   
   @classmethod
   def fromXMLElement(cls, xmlElement, actor=None):

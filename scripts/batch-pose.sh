@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 
 videoDir=${1:-../res/videos/virtual/}
+outDir=../out/
+poseDir=../out/pose/
 
 echo "Batch-run record pose task"
+mkdir -p $poseDir
 echo "Reading input videos from: $videoDir"
-for videoFile in `ls $videoDir`
+for videoFile in `ls $videoDir*.mp4 | xargs -n 1 basename`
 do
   videoFilepath="$videoDir$videoFile"
-  poseFilepath="../out/pose/${videoFile%.mp4}.dat"
-  echo "\n*** Running: $videoFilepath => $poseFilepath"
-  python Main.py ../res $videoFilepath
-  if [ -f ../out/pose.dat ]
+  poseFilepath="$poseDir${videoFile%.mp4}.dat"
+  echo
+  echo "*** Running: $videoFilepath => $poseFilepath"
+  ./Main.py $videoFilepath --sync_video --task=RecordPoseTask
+  if [ -f ${outDir}pose.dat ]
   then
-    mv ../out/pose.dat $poseFilepath
+    mv ${outDir}pose.dat $poseFilepath
   fi
 done

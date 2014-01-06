@@ -2,8 +2,8 @@
 
 """Tangible Data Exploration.
 
-Usage: ./Main.py [input_source]
-For more options: ./Main.py --help
+Usage: Main.py [input_source]
+For more options: Main.py --help
 
 """
 
@@ -13,8 +13,9 @@ import os
 import time
 import numpy as np
 import logging
-from threading import Thread
 import argparse
+from threading import Thread
+from importlib import import_module
 
 # GL imports
 from OpenGL.arrays.vbo import VBO
@@ -36,9 +37,7 @@ from Context import Context
 from Renderer import Renderer
 from Scene import Scene
 from Controller import Controller
-from task.Task import Task
-from task.MatchTargetTask import MatchTargetTask
-from task.RecordPoseTask import RecordPoseTask
+from task.Task import Task  # base (and dummy) Task class
 if haveCV:
   from vision.input import VideoInput
   from vision.gl import FrameProcessorGL
@@ -58,8 +57,9 @@ class Main:
     # * Initialize global context, passing in custom command line args (parsed by Context)
     argParser = argparse.ArgumentParser(add_help=False)
     showInputGroup = argParser.add_mutually_exclusive_group()
-    showInputGroup.add_argument('--show_input', dest='show_input', action="store_true", default=True, help="show input video underlay (emulate see-through display)")
-    showInputGroup.add_argument('--hide_input', dest='show_input', action="store_false", default=False, help="hide input video underlay (show only virtual objects)")
+    showInputGroup.add_argument('--show_input', dest='show_input', action="store_true", default=True, help="show input video (emulate see-through display)?")
+    showInputGroup.add_argument('--hide_input', dest='show_input', action="store_false", default=False, help="hide input video (show only virtual objects)?")
+    argParser.add_argument('--task', default="Task", help="task to run (maps to class name)")
     
     self.context = Context.createInstance(description="Tangible Data Exploration", parent_argparsers=[argParser])
     self.context.main = self  # hijack global context to share a reference to self
@@ -75,7 +75,7 @@ class Main:
     self.context.renderer = Renderer()
     self.context.controller = Controller()
     
-    # * Initialize scene and load base scene fragments, including tools
+    # * Initialize scene and load base scene fragments, including tools (TODO use a command-line arg./config param. to specify which scene files to load, besides task-specific ones)
     self.context.scene = Scene()
     self.context.scene.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))  # just the cube
     #self.context.scene.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))  # Stanford Dragon
@@ -84,7 +84,13 @@ class Main:
     #self.context.scene.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
     
     # * Initialize task (may load further scene fragments, including task-specific tools)
-    self.context.task = Task()  # e.g. RecordPoseTask()  # choose which task here (TODO make this a command-line arg./config param. along with which scene files to load?)
+    try:
+      taskModule = import_module('task.' + self.context.options.task)  # fetch module by name from task package
+      taskType = getattr(taskModule, self.context.options.task)  # fetch class by name from corresponding module (same name, by convention)
+      self.context.task = taskType()  # create an instance of specified task class
+    except Exception as e:
+      self.logger.error("Task initialization error: {}".format(e))
+      self.context.task = Task()  # fallback to dummy task
     
     # * Finalize scene (resolves scene fragments into one hierarchy, builds ID-actor mapping)
     self.context.scene.finalize()  # NOTE should be called after all read*() methods have been called on scene
