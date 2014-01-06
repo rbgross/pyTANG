@@ -10,7 +10,9 @@ library(orientlib)  # for converting between Euler angles and quaternions
 # Script parameters
 ## Files and directories
 fcurves_dir = "res/videos/virtual/"
-pose_dir = "out/pose/"
+default_pose_dir = "out/pose/"
+all_test_sets = c("01-translate-X", "02-translate-Y", "03-translate-Z", "04-rotate-X", "05-rotate-Y", "06-rotate-Z")
+fps_rates = c(10, 20, 30, 40, 50)  # for multi-speed pose comparisons
 
 ## Data scaling and transformation
 fcurves_trans_scale = 100  # fcurves are in meters
@@ -20,7 +22,7 @@ pose_trans_scale = 0.5  # observed pose data is roughly in 0.5 cms (TODO verify 
 two_pi = 2 * pi
 
 # Pose plotting (and analysis) function
-plotPose <- function(fcurves_file, pose_file) {
+plotPose <- function(fcurves_file, pose_file, pose_dir=default_pose_dir) {
   # * Read fcurves and prepare ground truth data
   fcurves = read.table(paste(fcurves_dir, fcurves_file, sep=""), header=TRUE, sep="\t")
   ground_truth = as.data.frame(list(frame=fcurves[,'frame']))  # seed ground truth data frame with 'frame' column
@@ -139,11 +141,32 @@ plotPose <- function(fcurves_file, pose_file) {
   return(list(ground_truth=ground_truth, pose=pose, merged=merged))
 }
 
-plotPose2 <- function(base_filename) {
-  return(plotPose(fcurves_file=paste(base_filename, "_fcurves.dat", sep=""), pose_file=paste(base_filename, ".dat", sep="")))
+plotPose2 <- function(base_filename, pose_dir=default_pose_dir) {
+  return(plotPose(fcurves_file=paste(base_filename, "_fcurves.dat", sep=""), pose_file=paste(base_filename, ".dat", sep=""), pose_dir))
+}
+
+plotPose3Multi <- function(base_filename, pose_dir=default_pose_dir) {
+  res_by_fps = list()
+  for(fps in fps_rates) {
+    res = plotPose(fcurves_file=paste(base_filename, "_fcurves.dat", sep=""), pose_file=paste(base_filename, "_", fps, "fps.dat", sep=""), pose_dir)
+    res_by_fps[[as.character(fps)]] = res
+    # TODO: Compare res$merged$XXX and res$merged$true_XXX to find out error
+  }
+  return(res_by_fps)
+}
+
+analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) {
+  res_by_test = list()
+  for(base_filename in test_sets) {
+    res = plotPose3Multi(base_filename, pose_dir)
+    res_by_test[[base_filename]] = res
+  }
+  return(res_by_test)
 }
 
 # Examples
 #plotPose2("01-translate-X")  # default: fcurves relative to camera
 #plotPose(fcurves_file="01-translate-X_fcurves.dat", pose_file="01-translate-X.dat")  # fcurves relative to camera
 #plotPose(fcurves_file="01-translate-X_fcurves_abs.dat", pose_file="01-translate-X.dat")  # fcurves absolute, with Blender's coordinate origin as (0, 0, 0)
+#plotPose3Multi("02-translate-Y", pose_dir="out/pose-multi_2014-01-06/")
+#all_res = analyzeTestSets(pose_dir="out/pose-multi_2014-01-06/")
