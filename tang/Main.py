@@ -14,6 +14,7 @@ import time
 import numpy as np
 import logging
 from threading import Thread
+import argparse
 
 # GL imports
 from OpenGL.arrays.vbo import VBO
@@ -52,12 +53,16 @@ class Main:
   """Main application class."""
   
   def __init__(self):
-    #sys.argv = ['Main.py', '../res', '../res/videos/test-10.mpeg']
-    self.experimentalMode = False  # TODO change this to a context flag
+    #sys.argv = ['Main.py', '../res/videos/test-14.mpeg', '--hide_input']  # [debug: run with set command-line args]
     
-    # * Initialize global context (command line args are parsed by Context)
-    self.context = Context.createInstance(description="Tangible Data Exploration")
-    self.context.main = self
+    # * Initialize global context, passing in custom command line args (parsed by Context)
+    argParser = argparse.ArgumentParser(add_help=False)
+    showInputGroup = argParser.add_mutually_exclusive_group()
+    showInputGroup.add_argument('--show_input', dest='show_input', action="store_true", default=True, help="show input video underlay (emulate see-through display)")
+    showInputGroup.add_argument('--hide_input', dest='show_input', action="store_false", default=False, help="hide input video underlay (show only virtual objects)")
+    
+    self.context = Context.createInstance(description="Tangible Data Exploration", parent_argparsers=[argParser])
+    self.context.main = self  # hijack global context to share a reference to self
     # NOTE Most objects require an initialized context, so do this as soon as possible
     
     # * Obtain a logger (NOTE Context must be initialized first since it configures logging)
@@ -102,9 +107,13 @@ class Main:
     #   e.g. on Mac OS, use uvc-ctrl to turn off auto-exposure:
     #   $ ./uvc-ctrl -s 1 3 10
     
-    # * Create image blitter
-    self.context.imageBlitter = FrameProcessorGL(self.options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
-    # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
+    # * Create image blitter, if input is to be shown
+    if self.context.options.show_input:
+      self.context.imageBlitter = FrameProcessorGL(self.options)  # CV-GL renderer that blits (copies) CV image to OpenGL window
+      # TODO Evaluate 2 options: Have separate tracker and blitter/renderer or one combined tracker that IS-A FrameProcessorGL? (or make a pipeline?)
+      self.logger.info("Video see-through mode enabled; input video underlay will be shown")
+    else:
+      self.logger.info("Video see-through mode disabled; only virtual objects will be shown")
     
     # * Setup tracking
     self.context.cubeTracker = CubeTracker(self.options)  # specialized cube tracker, available in context to allow access to cubeTracker's input and output images etc.
@@ -122,10 +131,11 @@ class Main:
     # * Start CV loop on separate thread
     # ** Initialize CV processors (NOTE videoInput should already have read an image)
     self.context.cubeTracker.initialize(self.context.videoInput.image, self.context.timeNow)
-    self.context.imageBlitter.initialize(
-      self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
-      else self.context.videoInput.image,
-      self.context.timeNow)
+    if self.context.options.show_input:
+      self.context.imageBlitter.initialize(
+        self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
+        else self.context.videoInput.image,
+        self.context.timeNow)
     # ** Create new thread and start it
     cvThread = Thread(target=self.cvLoop)
     cvThread.start()
@@ -156,10 +166,11 @@ class Main:
         self.context.cubeTracker.process(self.context.videoInput.image, self.context.timeNow)  # NOTE this can be computationally expensive
         
         # *** Cache CV output image (normally the raw camera input) for blitting in GL loop
-        self.context.imageBlitter.process(
-          self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
-          else self.context.videoInput.image,
-          self.context.timeNow)
+        if self.context.options.show_input:
+          self.context.imageBlitter.process(
+            self.context.cubeTracker.imageOut if self.context.cubeTracker.imageOut is not None
+            else self.context.videoInput.image,
+            self.context.timeNow)
         
         # *** Rotate and translate model transform to match tracked cube (NOTE Y and Z axis directions are inverted between CV and GL)
         if not self.context.controller.manualControl:
@@ -186,7 +197,7 @@ class Main:
       
       # ** Render background image and scene
       self.context.renderer.startDraw()
-      if not self.experimentalMode:
+      if self.context.options.show_input:
         self.context.imageBlitter.render()
       self.context.scene.draw()
       self.context.renderer.endDraw()
