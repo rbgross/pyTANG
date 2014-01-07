@@ -149,7 +149,7 @@ plotPose2 <- function(base_filename, pose_dir=default_pose_dir) {
   return(plotPose(fcurves_file=paste(base_filename, "_fcurves.dat", sep=""), pose_file=paste(base_filename, ".dat", sep=""), pose_dir))
 }
 
-plotPose3Multi <- function(base_filename, pose_dir=default_pose_dir) {
+plotPose3Multi <- function(base_filename, pose_dir=default_pose_dir, step.pattern=asymmetricP0, window.type="itakura") {
   res_by_fps = list()
   for(fps in fps_rates) {
     res = plotPose(fcurves_file=paste(base_filename, "_fcurves.dat", sep=""), pose_file=paste(base_filename, "_", fps, "fps.dat", sep=""), pose_dir)
@@ -157,10 +157,10 @@ plotPose3Multi <- function(base_filename, pose_dir=default_pose_dir) {
     # Compare pose and ground_truth to find out error
     trans = res$merged[,c('trans_x', 'trans_y', 'trans_z')]
     true_trans = res$merged[,c('true_trans_x', 'true_trans_y', 'true_trans_z')]
-    dtw_trans = dtw(trans, true_trans)
+    dtw_trans = dtw(trans, true_trans, step.pattern=step.pattern, window.type=window.type)
     rot = res$merged[,c('rot_x', 'rot_y', 'rot_z')]
     true_rot = res$merged[,c('true_rot_x', 'true_rot_y', 'true_rot_z')]
-    dtw_rot = dtw(rot, true_rot)
+    dtw_rot = dtw(rot, true_rot, step.pattern=step.pattern, window.type=window.type)
     res$dtw_trans = dtw_trans
     res$dtw_rot = dtw_rot
     res_by_fps[[as.character(fps)]] = res
@@ -170,27 +170,32 @@ plotPose3Multi <- function(base_filename, pose_dir=default_pose_dir) {
 
 analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) {
   # Header for output table
-  cat("test")
+  cat("motion_axis")
   for(fps in fps_rates) {
-    cat(paste("\ttrans_", fps, "fps", "\trot_", fps, "fps", sep=""))
+    cat(paste("\tfps", fps, "_trans", "\tfps", fps, "_rot", sep=""))
   }
   cat("\n")
   
   # Loop over all tests
   res_by_test = list()
+  dtw_dist = data.frame(motion=as.factor(NA), axis=as.factor(NA), fps=as.vector(NA, mode="numeric"), component=as.factor(NA), value=as.vector(NA, mode="numeric"))
+  dtw_dist = dtw_dist[-1,]  # drop row of NAs
   for(base_filename in test_sets) {
+    base_filename_parts = strsplit(base_filename, "-")[[1]]
     res = plotPose3Multi(base_filename, pose_dir)
     res_by_test[[base_filename]] = res
     
-    # Output table: dtw_trans & dtw_rot
-    cat(base_filename)
+    # Extract normalized DTW distance for trans & rot
+    cat(paste(base_filename_parts[2], base_filename_parts[3], sep="_"))  # skip 00- prefix
     for(fps in fps_rates) {
-      fps = as.character(fps)
-      cat(paste("\t", res[[fps]]$dtw_trans$dist, "\t", res[[fps]]$dtw_rot$dist, sep=""))
+      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="trans", value=res[[as.character(fps)]]$dtw_trans$normalizedDistance))
+      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="rot", value=res[[as.character(fps)]]$dtw_rot$normalizedDistance))
+      
+      cat(paste("\t", res[[as.character(fps)]]$dtw_trans$normalizedDistance, "\t", res[[as.character(fps)]]$dtw_rot$normalizedDistance, sep=""))
     }
     cat("\n")
   }
-  return(res_by_test)
+  return(list(res_by_test=res_by_test, dtw_dist=dtw_dist))
 }
 
 # Examples
@@ -199,3 +204,9 @@ analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) 
 #plotPose(fcurves_file="01-translate-X_fcurves_abs.dat", pose_file="01-translate-X.dat")  # fcurves absolute, with Blender's coordinate origin as (0, 0, 0)
 #plotPose3Multi("02-translate-Y", pose_dir="out/pose-multi_2014-01-06/")
 #all_res = analyzeTestSets(pose_dir="out/pose-multi_2014-01-06/")
+#all_res$dtw_dist  # DTW distances
+#write.table(all_res$dtw_dist, file="dtw-results.dat", sep="\t", row.names=FALSE, quote=FALSE)  # write DTW values to file
+
+# To plot DTW distances (components by motions):
+#ggplot(all_res$dtw_dist, aes(x=fps, y=value, group=axis, colour=axis)) + geom_line() + facet_grid(component~motion, scale="free")  # raw, without proper labels
+#ggplot(all_res$dtw_dist, aes(x=fps, y=value, group=axis, colour=axis)) + geom_line(lwd=1.2) + facet_grid(component~motion, scale="free") + labs(title="DTW distances for different motions and pose components", x="Input video frame rate (at 30 fps translate: 8 cm/s, rotate: 1.57 radians/s)", y="DTW distance (trans: cm, rot: radians)", colour="Motion axis") + theme(axis.title.x=element_text(vjust=-0.5), axis.title.y=element_text(vjust=0.25), title=element_text(vjust=1.0))
