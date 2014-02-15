@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<scene>
+  <Actor id="pointer">
+    <components>
+      <Mesh src="SmallSphere.obj"/>
+      <Transform />
+      <Material color="0.4 0.4 0.8"/>
+    </components>
+    <children/>
+  </Actor>
+</scene>
