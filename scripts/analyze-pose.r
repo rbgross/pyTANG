@@ -172,7 +172,7 @@ analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) 
   # Header for output table
   cat("motion_axis")
   for(fps in fps_rates) {
-    cat(paste("\tfps", fps, "_trans", "\tfps", fps, "_rot", sep=""))
+    cat(paste("\tfps", fps, "_pos", "\tfps", fps, "_ori", sep=""))
   }
   cat("\n")
   
@@ -188,8 +188,8 @@ analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) 
     # Extract normalized DTW distance for trans & rot
     cat(paste(base_filename_parts[2], base_filename_parts[3], sep="_"))  # skip 00- prefix
     for(fps in fps_rates) {
-      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="trans", value=res[[as.character(fps)]]$dtw_trans$normalizedDistance))
-      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="rot", value=res[[as.character(fps)]]$dtw_rot$normalizedDistance))
+      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="position", value=res[[as.character(fps)]]$dtw_trans$normalizedDistance))
+      dtw_dist = rbind(dtw_dist, data.frame(motion=base_filename_parts[2], axis=base_filename_parts[3], fps=fps, component="orientation", value=res[[as.character(fps)]]$dtw_rot$normalizedDistance))
       
       cat(paste("\t", res[[as.character(fps)]]$dtw_trans$normalizedDistance, "\t", res[[as.character(fps)]]$dtw_rot$normalizedDistance, sep=""))
     }
@@ -209,4 +209,4 @@ analyzeTestSets <- function(test_sets=all_test_sets, pose_dir=default_pose_dir) 
 
 # To plot DTW distances (components by motions):
 #ggplot(all_res$dtw_dist, aes(x=fps, y=value, group=axis, colour=axis)) + geom_line() + facet_grid(component~motion, scale="free")  # raw, without proper labels
-#ggplot(all_res$dtw_dist, aes(x=fps, y=value, group=axis, colour=axis)) + geom_line(lwd=1.2) + facet_grid(component~motion, scale="free") + labs(title="DTW distances for different motions and pose components", x="Input video frame rate (at 30 fps translate: 8 cm/s, rotate: 1.57 radians/s)", y="DTW distance (trans: cm, rot: radians)", colour="Motion axis") + theme(axis.title.x=element_text(vjust=-0.5), axis.title.y=element_text(vjust=0.25), title=element_text(vjust=1.0))
+#ggplot(all_res$dtw_dist, aes(x=fps, y=value, group=axis, colour=axis)) + geom_line(lwd=1.2) + facet_grid(component~motion, scale="free") + labs(title="DTW distances for different motions and pose components", x="Input video frame rate (at 30 fps translate: 8 cm/s, rotate: 1.57 radians/s)", y="DTW distance (position: cm, orientation: radians)", colour="Motion axis") + theme(axis.title.x=element_text(vjust=-0.5), axis.title.y=element_text(vjust=0.25), title=element_text(vjust=1.0))
