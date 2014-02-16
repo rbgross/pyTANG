@@ -2,6 +2,7 @@ import time
 import json
 from threading import Thread
 import zmq
+import numpy as np
 
 from tool.Tool import Tool
 
@@ -10,6 +11,7 @@ class HapticPointer(Tool):
   
   sub_address = "tcp://localhost:60007"
   topic = "pose"
+  origin_offset = np.float32([0.0, 0.0, 80.0])  # TODO make this configurable, replace with complete 3D transform?
   
   def __init__(self):
     Tool.__init__(self)
@@ -27,7 +29,9 @@ class HapticPointer(Tool):
     time.sleep(0.005)  # mandatory sleep for ZMQ backend
     
     # * Initialize other members
-    self.pose = None
+    self.valid = False
+    self.position = self.origin_offset
+    self.orientation = np.float32([0.0, 0.0, 0.0])
     self.loop = True  # TODO ensure this is properly shared across threads
     
     # * Start sensing loop
@@ -40,13 +44,18 @@ class HapticPointer(Tool):
     while self.loop:
       try:
         topic, data = self.socket.recv_multipart()
-        self.logger.info("Topic: {}; Data: {}".format(topic, data))  # [debug]
-        self.pose = data  # [debug: placeholder till decoding is ironed out]
-        #self.pose = json.loads(data) # TODO correct JSON format and debug decoding
-        #self.logger.info(self.pose)
+        #self.logger.info("Topic: {}; Data: {}".format(topic, data))  # [debug: raw incoming data]
+        pose = json.loads(data) # ensure correct JSON format (e.g. 1.0 instead of 1. for float numbers)
+        self.position = np.float32(pose['position']) + self.origin_offset
+        self.orientation = np.float32(pose['orientation'])
+        self.valid = True
+        self.logger.info("position: {}, orientation: {}".format(self.position, self.orientation))  # [debug: processed pose]
       except KeyboardInterrupt:
         self.logger.info("[HapticPointer.senseLoop] Interrupted!")
         break
+      except ValueError:
+        self.logger.error("[HapticPointer.senseLoop] Bad JSON!")
+        self.valid = False
     self.logger.info("[HapticPointer.senseLoop] Done.")
   
   def close(self):

@@ -32,5 +32,6 @@ class HapticSelectTask(Task):
     self.pointer.close()
   
   def update(self):
-    self.logger.info("Haptic pointer pose: {}".format(self.pointer.pose))  # [debug]
-    # TODO Update pointer model's position and orientation in scene
+    # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
+    if self.pointer.valid:
+        self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)
