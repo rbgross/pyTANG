@@ -4,13 +4,15 @@ from threading import Thread
 import zmq
 import numpy as np
 
+import hommat as hm
+
 from tool.Tool import Tool
 
 class HapticPointer(Tool):
   """Wrapper class that reads in sensor values from a haptic pointing device over ZMQ."""
   
   sub_address = "tcp://localhost:60007"
-  topic = "pose"
+  topic = "trackStylus"
   
   # Define transformation from device space to world (camera) space
   # TODO Make this configurable, replace with complete 3D transform as the camera view is tilted
@@ -34,8 +36,10 @@ class HapticPointer(Tool):
     
     # * Initialize other members
     self.valid = False
+    self.buttons = [0, 0]  # primary, secondary
     self.position = self.position_offset
-    self.orientation = np.float32([0.0, 0.0, 0.0])
+    #self.orientation = np.float32([0.0, 0.0, 0.0])  # TODO: use orientation and scale, along with position, directly from transform
+    self.transform = hm.translation(hm.identity(), self.position_offset)
     self.loop = True  # TODO ensure this is properly shared across threads
     
     # * Start sensing loop
@@ -47,13 +51,26 @@ class HapticPointer(Tool):
     self.logger.info("[HapticPointer.senseLoop] Starting...")
     while self.loop:
       try:
-        topic, data = self.socket.recv_multipart()
-        #self.logger.info("Topic: {}; Data: {}".format(topic, data))  # [debug: raw incoming data]
-        pose = json.loads(data) # ensure correct JSON format (e.g. 1.0 instead of 1. for float numbers)
-        self.position = np.float32(pose['position']) * self.position_scale + self.position_offset
-        self.orientation = np.float32(pose['orientation'])
+        # Receieve data, parse JSON
+        topic, data_str = self.socket.recv_multipart()
+        #self.logger.info("Topic: {}; Data: {}".format(topic, data_str))  # [debug: raw incoming data]
+        data = json.loads(data_str) # ensure correct JSON format (e.g. 1.0 instead of 1. for float numbers)
+        #self.logger.info("JSON object: {}".format(data))  # [debug: JSON-decoded data]
+        
+        # Parse button state
+        self.buttons = data['buttons']
+        self.logger.info("Buttons: {}".format(self.buttons))  # [debug: buttons]
+        
+        # Parse transform to get position, orientation and scale (separately, or use transform directly)
+        self.transform = np.float32(data['transform'])
+        #self.logger.info("Transform:\n{}".format(self.transform))  # [debug: transform]
+        #self.position = np.float32(pose['position']) * self.position_scale + self.position_offset  # [old]
+        self.position = self.transform[:3, 3] * self.position_scale + self.position_offset  # position: first 3 rows, last column
+        self.logger.info("Position: {}".format(self.position))  # [debug: position]
+        # NOTE: orientation and scale together make up transform[0:3, 0:3]
+        #self.orientation = np.float32(pose['orientation'])  # [old]
+        #self.logger.info("position: {}, orientation: {}".format(self.position, self.orientation))  # [debug: processed pose] [old]
         self.valid = True
-        self.logger.info("position: {}, orientation: {}".format(self.position, self.orientation))  # [debug: processed pose]
       except KeyboardInterrupt:
         self.logger.info("[HapticPointer.senseLoop] Interrupted!")
         break

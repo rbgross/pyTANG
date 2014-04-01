@@ -34,4 +34,4 @@ class HapticSelectTask(Task):
   def update(self):
     # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
     if self.pointer.valid:
-        self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)
+        self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)  # TODO: use transform directly
