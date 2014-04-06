@@ -60,6 +60,7 @@ class Main:
     showInputGroup.add_argument('--show_input', dest='show_input', action="store_true", default=True, help="show input video (emulate see-through display)?")
     showInputGroup.add_argument('--hide_input', dest='show_input', action="store_false", default=False, help="hide input video (show only virtual objects)?")
     argParser.add_argument('--task', default="Task", help="task to run (maps to class name)")
+    argParser.add_argument('--scene', dest="scene_files", metavar='SCENE_FILE', nargs='+', help="scene fragment(s) to load (filenames in <res>/data/)")
     
     self.context = Context.createInstance(description="Tangible Data Exploration", parent_argparsers=[argParser])
     self.context.main = self  # hijack global context to share a reference to self
@@ -75,13 +76,19 @@ class Main:
     self.context.renderer = Renderer()
     self.context.controller = Controller()
     
-    # * Initialize scene and load base scene fragments, including tools (TODO use a command-line arg./config param. to specify which scene files to load, besides task-specific ones)
+    # * Initialize scene and load base scene fragments, including tools
     self.context.scene = Scene()
     self.context.scene.readXML(self.context.getResourcePath('data', 'CubeScene.xml'))  # just the cube
     #self.context.scene.readXML(self.context.getResourcePath('data', 'DragonScene.xml'))  # Stanford Dragon
     #self.context.scene.readXML(self.context.getResourcePath('data', 'BP3D-FMA7088-heart.xml'))  # BodyParts3D heart model hierarchy
     #self.context.scene.readXML(self.context.getResourcePath('data', 'RadialTreeScene.xml'))
     #self.context.scene.readXML(self.context.getResourcePath('data', 'PerspectiveScene.xml'))
+    
+    # ** Load scene fragments specified on commandline (only need to specify filename in data/ directory)
+    self.logger.info("Scene fragment(s): %s", self.context.options.scene_files)
+    if self.context.options.scene_files is not None:
+        for scene_file in self.context.options.scene_files:
+            self.context.scene.readXML(self.context.getResourcePath('data', scene_file))
     
     # * Initialize task (may load further scene fragments, including task-specific tools)
     try:

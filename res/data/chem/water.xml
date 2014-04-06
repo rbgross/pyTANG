@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!-- A simple model of the water molecule with atoms scaled by their van der Waals radius (O = 1.52 A, H = 1.2 A), OH bond length = 0.9584 A and bond angle = 104.5 deg. -->
+<!-- NOTE: The molecule scale used here is for display purposes only. The mesh used for atoms should be a unit sphere. -->
+<scene>
+  <Actor description="water molecule" parent="cube">
+    <components>
+      <Transform scale="5.0 5.0 5.0" rotation="0.0 0.0 0.0"/>
+    </components>
+    <children>
+      <Actor description="oxygen">
+        <components>
+          <Mesh src="SmallSphere.obj"/>
+          <Transform scale="1.52 1.52 1.52"/>
+          <Material color="0.8 0.3 0.3"/>
+        </components>
+        <children/>
+      </Actor>
+      <Actor description="bond">
+        <components>
+          <Transform rotation="0.0 0.0 0.0"/>
+        </components>
+        <children>
+          <Actor description="hydrogen">
+            <components>
+              <Mesh src="SmallSphere.obj"/>
+              <Transform translation="0.9584 0.0 0.0" scale="1.2 1.2 1.2"/>
+              <Material color="0.7 0.7 0.7"/>
+            </components>
+            <children/>
+          </Actor>
+        </children>
+      </Actor>
+      <Actor description="bond">
+        <components>
+          <Transform rotation="0.0 0.0 104.5"/>
+        </components>
+        <children>
+          <Actor description="hydrogen">
+            <components>
+              <Mesh src="SmallSphere.obj"/>
+              <Transform translation="0.9584 0.0 0.0" scale="1.2 1.2 1.2"/>
+              <Material color="0.7 0.7 0.7"/>
+            </components>
+            <children/>
+          </Actor>
+        </children>
+      </Actor>
+    </children>
+  </Actor>
+</scene>
