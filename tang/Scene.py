@@ -119,6 +119,11 @@ class Scene:
                 return targetActor
         return None
     
+    def findActorsByComponent(self, componentName):
+        for actor in self.actors:
+            for matchingActor in actor.findActorsByComponent(componentName):
+                yield matchingActor
+    
     def dump(self):
         print "Scene.dump(): Actors:-"
         for actor in self.actors:

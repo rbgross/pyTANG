@@ -14,6 +14,9 @@ from component.Transform import Transform
 from component.Material import Material
 from component.Cube import Cube
 from component.RadialTree import RadialTree
+from component.Collider import SphereCollider
+# TODO: Find a better way to enable all components - having to import them once defeats the registry effort
+
 
 class ActorFactory:
     def __init__(self, renderer):

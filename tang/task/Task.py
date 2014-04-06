@@ -17,11 +17,11 @@ class Task:
   
   def activate(self):
     self.active = True
-    self.logger.info("[{}] Activated".format(self.__class__.__name__))
+    self.logger.info("[{}] Activated at time: {:.3f}".format(self.__class__.__name__, self.context.timeNow))
   
   def deactivate(self):
     self.active = False
-    self.logger.info("[{}] Deactivated".format(self.__class__.__name__))
+    self.logger.info("[{}] Deactivated at time: {:.3f}".format(self.__class__.__name__, self.context.timeNow))
   
   def toggle(self):
     if self.active:

@@ -17,8 +17,9 @@ class Actor:
     # Initialize empty actor object
     actor = actorFactory.makeEmpty()
     
-    # TODO Extract common element attributes such as id, type?
+    # Extract common Actor attributes such as id, description, parent
     actor.id = xmlElement.get('id', None)
+    actor.description = xmlElement.get('description', None)
     actor.parent = xmlElement.get('parent', None)
     
     # Load actor's components
@@ -94,8 +95,17 @@ class Actor:
           return targetActor
     return None
   
+  def findActorsByComponent(self, componentName):
+    """Use generator pattern to return all actors under this hierarchy (including self) that have a given component."""
+    if componentName in self.components:  # TODO: we should store the actual component classes as keys to allow subclass matching
+      yield self
+    for child in self.children:
+      for matchingActor in child.findActorsByComponent(componentName):
+        yield matchingActor
+  
   def toXMLElement(self):
     xmlElement = ET.Element(self.__class__.__name__)
+    # TODO: Add common Actor attributes
     
     componentsElement = ET.SubElement(xmlElement, 'components')
     for component in self.components.itervalues():
@@ -109,9 +119,13 @@ class Actor:
     return xmlElement
   
   def toString(self, indent=""):
+    # TODO: Make this more efficient and automatic!
     out = indent + "Actor: {\n"
     if self.id is not None:
       out += indent + "  id: \"{}\"".format(self.id)
+      out += ",\n" if self.description is not None or self.parent is not None or self.components or self.children else "\n"
+    if self.description is not None:
+      out += indent + "  description: \"{}\"".format(self.description)
       out += ",\n" if self.parent is not None or self.components or self.children else "\n"
     if self.parent is not None:
       out += indent + "  parent: \"{}\"".format(self.parent)

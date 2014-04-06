@@ -32,6 +32,31 @@ class HapticSelectTask(Task):
     self.pointer.close()
   
   def update(self):
-    # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
     if self.pointer.valid:
-        self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)  # TODO: use transform directly
+      # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
+      self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)  # TODO: use transform directly
+    
+    if True:  # [debug]
+      # Check for collisions with Collider components
+      # TODO: Enhancements (mostly Collider improvements):
+      #       1. Generalize to other Collider types; currently supports SphereCollider only (and that too with radius correctly set)
+      #          This will only be possible after certain improvements in the scene graph, esp. to query for actors with a certain base component (Collider)
+      #       2. Allow a single Collider to represent a whole hierarchy (if indicated), utilizing a bounding box for all meshes by default
+      # TODO: Optimizations:
+      #       1. Walk once when scene is finalized and cache all collidable actors, their colliders
+      #       2. Use a spatial index to speed up matching (otherwise this is very slow)
+      # * Walk the scene hierarchy looking for actors with Colliders
+      for actor in self.context.scene.findActorsByComponent('SphereCollider'):
+        try:
+          # ** Check if pointer is touching the actor, if so highlight it (also manage highlight removal)
+          dist = np.linalg.norm(actor.transform[:3, 3] - self.pointerActor.transform[:3, 3], ord=2)
+          isColliding = dist < actor.components['SphereCollider'].radius
+          #self.logger.debug("Actor: %s (%s), distance: %7.3f, colliding? %s", actor.id, actor.description, dist, isColliding)  # [verbose]
+          if isColliding and not actor.components['SphereCollider'].isHighlighted:
+            actor.components['SphereCollider'].set_highlight(True)
+            self.logger.info("Touched %s (%s)! Distance: %.3f, time: %.3f", actor.id, actor.description, dist, self.context.timeNow)  # [debug]
+            # TODO: Generate onSelect event? (or onHighlight in SphereCollider?)
+          elif not isColliding and actor.components['SphereCollider'].isHighlighted:
+            actor.components['SphereCollider'].set_highlight(False)
+        except AttributeError as e:
+          self.logger.error("Couldn't compute distance to actor: %s", e)

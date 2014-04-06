@@ -13,6 +13,7 @@ class HapticPointer(Tool):
   
   sub_address = "tcp://localhost:60007"
   topic = "trackStylus"
+  socket_linger = 2000  # ms; time to linger around after socket has been closed waiting for a recv()
   
   # Define transformation from device space to world (camera) space
   # TODO Make this configurable, replace with complete 3D transform as the camera view is tilted
@@ -31,6 +32,7 @@ class HapticPointer(Tool):
     
     # * Subscribe to appropriate topic
     self.socket.setsockopt(zmq.SUBSCRIBE, self.topic)
+    self.socket.setsockopt(zmq.LINGER, self.socket_linger)
     self.logger.debug("Subscribed to topic \"{}\"".format(self.topic))
     time.sleep(0.005)  # mandatory sleep for ZMQ backend
     
@@ -44,6 +46,7 @@ class HapticPointer(Tool):
     
     # * Start sensing loop
     self.senseThread = Thread(target=self.senseLoop)
+    self.senseThread.daemon = True  # to prevent indefinite wait on recv()
     self.senseThread.start()
     time.sleep(0.005)  # sleep to allow child thread to run
   
@@ -83,7 +86,9 @@ class HapticPointer(Tool):
     self.loop = False
     self.logger.info("Waiting for HapticPointer.senseLoop thread to finish...")
     self.senseThread.join(1)
+    #self.socket.close()  # TODO: check why this is causing an error
+    #self.zmqContext.term()  # may cause problems; will be terminated when freed anyways
     if self.senseThread.is_alive():
-      self.logger.warn("HapticPointer.senseLoop thread has not finished; please terminate using Ctrl+C")
+      self.logger.warn("HapticPointer.senseLoop thread may not have finished; please terminate using Ctrl+C")
     else:
       self.logger.info("HapticPointer.senseLoop thread finished.")
