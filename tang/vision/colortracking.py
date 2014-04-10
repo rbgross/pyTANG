@@ -109,10 +109,10 @@ for tag, vertex in square_vertex_by_tag.iteritems():
 
 # Color filters
 redFilter = HSVFilter(np.array([175, 115, 64], np.uint8), np.array([5, 255, 255], np.uint8))
-blueFilter = HSVFilter(np.array([100, 100, 75], np.uint8), np.array([115, 255, 255], np.uint8))
+blueFilter = HSVFilter(np.array([100, 64, 75], np.uint8), np.array([115, 255, 255], np.uint8))
 #orangeFilter = HSVFilter(np.array([5, 125, 100], np.uint8), np.array([15, 255, 255], np.uint8))  # strict orange
 orangeFilter = HSVFilter(np.array([5, 120, 125], np.uint8), np.array([20, 255, 255], np.uint8))  # orange with a little yellow
-greenFilter = HSVFilter(np.array([50, 100, 32], np.uint8), np.array([80, 255, 255], np.uint8))  # wide range
+greenFilter = HSVFilter(np.array([50, 64, 32], np.uint8), np.array([80, 255, 255], np.uint8))  # wide range
 #greenFilter = HSVFilter(np.array([70, 64, 32], np.uint8), np.array([90, 255, 255], np.uint8))  # dark green
 yellowFilter = HSVFilter(np.array([20, 85, 150], np.uint8), np.array([44, 255, 255], np.uint8))
 purpleFilter = HSVFilter(np.array([110, 115, 64], np.uint8), np.array([140, 255, 255], np.uint8))

@@ -13,7 +13,7 @@
           <Mesh src="SmallSphere.obj"/>
           <Transform scale="1.52 1.52 1.52"/>
           <Material color="0.8 0.3 0.3"/>
-          <SphereCollider radius="7.6" highlight="0.9 0.5 0.5"/>
+          <SphereCollider radius="3.8" highlight="0.9 0.5 0.5"/>
         </components>
         <children/>
       </Actor>
@@ -27,7 +27,7 @@
               <Mesh src="SmallSphere.obj"/>
               <Transform translation="0.9584 0.0 0.0" scale="1.2 1.2 1.2"/>
               <Material color="0.7 0.7 0.7"/>
-              <SphereCollider radius="6.0" highlight="0.8 0.8 0.6"/>
+              <SphereCollider radius="3.0" highlight="0.8 0.8 0.4"/>
             </components>
             <children/>
           </Actor>
@@ -43,7 +43,7 @@
               <Mesh src="SmallSphere.obj"/>
               <Transform translation="0.9584 0.0 0.0" scale="1.2 1.2 1.2"/>
               <Material color="0.7 0.7 0.7"/>
-              <SphereCollider radius="6.0" highlight="0.8 0.8 0.4"/>
+              <SphereCollider radius="3.0" highlight="0.8 0.8 0.4"/>
             </components>
             <children/>
           </Actor>

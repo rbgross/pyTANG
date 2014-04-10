@@ -5,15 +5,15 @@
 <scene>
   <Actor description="benzene molecule" parent="cube">
     <components>
-      <Transform scale="5.0 5.0 5.0" rotation="0.0 0.0 0.0"/>
+      <Transform scale="4.0 4.0 4.0" rotation="0.0 0.0 0.0"/>
     </components>
     <children>
       <Actor description="carbon">
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="-1.206000 0.000000 0.674000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
@@ -22,8 +22,8 @@
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="-1.187000 0.000000 -0.707000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
@@ -32,8 +32,8 @@
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="0.018000 0.000000 -1.382000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
@@ -42,8 +42,8 @@
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="1.206000 0.000000 -0.674000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
@@ -52,8 +52,8 @@
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="1.187000 0.000000 0.707000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
@@ -62,8 +62,8 @@
           <components>
             <Mesh src="SmallSphere.obj"/>
             <Transform translation="-0.018000 0.000000 1.382000" scale="1.7 1.7 1.7"/>
-            <Material color="0.3 0.3 0.7"/>
-            <SphereCollider radius="8.5" highlight="0.5 0.5 0.9"/>
+            <Material color="0.3 0.5 0.7"/>
+            <SphereCollider radius="3.4" highlight="0.5 0.5 0.9"/>
           </components>
           <children/>
         </Actor>
