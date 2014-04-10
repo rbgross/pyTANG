@@ -6,6 +6,9 @@ from tool.HapticPointer import HapticPointer
 class HapticSelectTask(Task):
   """Use a haptic pointing device to select interactive objects."""
   
+  feedback_gain = 0.5  # refer to OpenHaptics HLAPI docs (HL_EFFECT_PROPERTY_GAIN)
+  feedback_magnitude = 0.6  # strength of haptic feedback (HL_EFFECT_PROPERTY_MAGNITUDE)
+  
   def __init__(self):
     Task.__init__(self)
     
@@ -36,7 +39,7 @@ class HapticSelectTask(Task):
       # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
       self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)  # TODO: use transform directly
     
-    if True:  # [debug]
+    if True:  # [debug: enables selection checking even when there is no valid haptic device connected - useful for development and testing]
       # Check for collisions with Collider components
       # TODO: Enhancements (mostly Collider improvements):
       #       1. Generalize to other Collider types; currently supports SphereCollider only (and that too with radius correctly set)
@@ -55,8 +58,10 @@ class HapticSelectTask(Task):
           if isColliding and not actor.components['SphereCollider'].isHighlighted:
             actor.components['SphereCollider'].set_highlight(True)
             self.logger.info("Touched %s (%s)! Distance: %.3f, time: %.3f", actor.id, actor.description, dist, self.context.timeNow)  # [debug]
-            # TODO: Generate onSelect event? (or onHighlight in SphereCollider?)
+            # Generate haptic feedback (TODO: vary magnitude by distance?)
+            self.pointer.setFeedback("on", self.feedback_gain, self.feedback_magnitude)
           elif not isColliding and actor.components['SphereCollider'].isHighlighted:
             actor.components['SphereCollider'].set_highlight(False)
+            self.pointer.setFeedback("off")  # default off
         except AttributeError as e:
           self.logger.error("Couldn't compute distance to actor: %s", e)
