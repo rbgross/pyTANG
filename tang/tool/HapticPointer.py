@@ -2,6 +2,7 @@ import time
 import json
 from threading import Thread
 import zmq
+from math import atan2, acos, pi
 import numpy as np
 
 import hommat as hm
@@ -19,8 +20,14 @@ class HapticPointer(Tool):
   pub_topic ="hapticControl"
   
   # Define transformation from device space to world (camera) space
-  # TODO Make this configurable, replace with complete 3D transform as the camera view is tilted (build calibration routine?)
-  position_scale = np.float32([1.0, -1.0, -1.0])  # flip Y and Z axes
+  axis_pre_transform = np.float32(
+      [[1, 0, 0, 0],
+       [0, -1, 0, 0],
+       [0, 0, -1, 80],
+       [0, 0, 0, 1]])
+  
+  # TODO: Add further (post) transform for position, rotation, scale; build calibration routine
+  position_scale = np.float32([1.0, 1.0, 1.0])
   position_offset = np.float32([0.0, 0.0, 80.0])  # move origin
   
   def __init__(self):
@@ -49,9 +56,8 @@ class HapticPointer(Tool):
     # * Initialize other members
     self.valid = False
     self.buttons = [0, 0]  # primary, secondary
-    self.position = self.position_offset
-    #self.orientation = np.float32([0.0, 0.0, 0.0])  # TODO: use orientation and scale, along with position, directly from transform
     self.transform = hm.translation(hm.identity(), self.position_offset)
+    #self.position = self.position_offset
     self.loop = True  # TODO ensure this is properly shared across threads
     
     # * Start sensing loop
@@ -75,14 +81,13 @@ class HapticPointer(Tool):
         #self.logger.info("Buttons: {}".format(self.buttons))  # [debug: buttons]
         
         # Parse transform to get position, orientation and scale (separately, or use transform directly)
-        self.transform = np.float32(data['transform'])
+        self.transform = np.dot(self.axis_pre_transform, np.float32(data['transform']))
         #self.logger.info("Transform:\n{}".format(self.transform))  # [debug: transform]
-        #self.position = np.float32(pose['position']) * self.position_scale + self.position_offset  # [old]
-        self.position = self.transform[:3, 3] * self.position_scale + self.position_offset  # position: first 3 rows, last column
+        
+        #self.position = self.transform[:3, 3] * self.position_scale + self.position_offset  # position: first 3 rows, last column
         #self.logger.info("Position: {}".format(self.position))  # [debug: position]
         # NOTE: orientation and scale together make up transform[0:3, 0:3]
-        #self.orientation = np.float32(pose['orientation'])  # [old]
-        #self.logger.info("position: {}, orientation: {}".format(self.position, self.orientation))  # [debug: processed pose] [old]
+        
         self.valid = True
       except KeyboardInterrupt:
         self.logger.info("[HapticPointer.senseLoop] Interrupted!")

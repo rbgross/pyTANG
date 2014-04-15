@@ -70,6 +70,9 @@ class Scene:
                     self.actors.append(actor)  # include in scene hierarchy
                     if actor.id is not None:
                         self.actorsById[actor.id] = actor
+                    for child in actor.children:
+                        if child.id is not None:
+                            self.actorsById[child.id] = child  # grab child actors as well
         else:
             self.logger.warn("Bad XML: Root must be a <scene> element!")
     

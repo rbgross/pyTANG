@@ -40,6 +40,11 @@ class Actor:
     self.renderer = renderer  # TODO make renderer a component?
     self.isTransient = isTransient  # if transient, will not be exported (in XML, etc.)
     
+    # Common attributes
+    self.id = None
+    self.description = None
+    self.parent = None
+    
     # Dictionary to store all components by name
     self.components = dict()
     
@@ -62,11 +67,14 @@ class Actor:
     #   But how do we ensure order is maintained? (Mesh must be rendered after applying Transform and Material) OrderedDict?
     self.transform = baseTransform
     try:
-      self.transform = hm.translation(self.transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
-      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[0], [1, 0, 0])
-      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[1], [0, 1, 0])
-      self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[2], [0, 0, 1])
-      self.transform = hm.scale(self.transform, self.components['Transform'].scale)
+      if hasattr(self, 'transform_matrix'):  # if there is a full transform, use it
+        self.transform = np.dot(self.transform, self.transform_matrix)
+      else:
+        self.transform = hm.translation(self.transform, self.components['Transform'].translation)  # TODO make transform relative to parent, not absolute
+        self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[0], [1, 0, 0])
+        self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[1], [0, 1, 0])
+        self.transform = hm.rotation(self.transform, self.components['Transform'].rotation[2], [0, 0, 1])
+        self.transform = hm.scale(self.transform, self.components['Transform'].scale)
     except KeyError, AttributeError:
       # Transform component not present or incomplete/invalid
       pass  # use base (parent) transform (?) - should get set in next step

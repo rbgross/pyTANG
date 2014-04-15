@@ -36,10 +36,10 @@ class HapticSelectTask(Task):
   
   def update(self):
     if self.pointer.valid:
-      # TODO Update pointer actor's position and orientation in scene, transform coordinates to align reference frames
-      self.pointerActor.components['Transform'].translation = np.float32(self.pointer.position)  # TODO: use transform directly
+      # Update pointer actor's position and orientation in scene (TODO: transform coordinates to align reference frames so that pointer is physically and virtually co-located)
+      self.pointerActor.transform_matrix = self.pointer.transform  # use transform directly
     
-    if True:  # [debug: enables selection checking even when there is no valid haptic device connected - useful for development and testing]
+    if True:  # [debug: enables selection checking even when there is no valid haptic device connected - useful for development and testing, harmless when live]
       # Check for collisions with Collider components
       # TODO: Enhancements (mostly Collider improvements):
       #       1. Generalize to other Collider types; currently supports SphereCollider only (and that too with radius correctly set)
